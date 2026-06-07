@@ -53,14 +53,14 @@ api_key = st.sidebar.text_input("Gemini API Key দিন:", type="password")
 if api_key:
     genai.configure(api_key=api_key)
 
-# ----------------- ডাটা ফেচিং ফাংশনসমূহ (১০০% রিয়েল-টাইম) -----------------
+# ----------------- ডাটা ফেচিং ফাংশনসমূহ (টপ ২০ ডেটা লিমিট) -----------------
 
 @st.cache_data(ttl=120)  # ২ মিনিট পর পর অটো রিফ্রেশ হবে
 def get_google_daily_trends():
     try:
         pytrends = TrendReq(hl='en-US', tz=360, timeout=(10,25))
         df = pytrends.trending_searches(pn='bangladesh')
-        return df[0].tolist()[:15]
+        return df[0].tolist()[:20]  # এখানে লিমিট ১৫ থেকে ২০ করা হয়েছে
     except Exception:
         return ["বাংলাদেশ টিম ব্রেকিং নিউজ", "আজকের আবহাওয়া ও বৃষ্টিপাত", "নিত্যপ্রয়োজনীয় পণ্যের বাজার দর", "সোশ্যাল মিডিয়া ভাইরাল ইস্যু"]
 
@@ -73,23 +73,28 @@ def get_google_realtime_trends():
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=6) as response:
             root = ET.fromstring(response.read())
-            for item in root.findall('.//item')[:15]:
+            for item in root.findall('.//item')[:20]:  # এখানে লিমিট ১৫ থেকে ২০ করা হয়েছে
                 title = item.find('title').text
                 if title and title not in topics:
                     topics.append(title)
     except Exception:
         pass
-    return topics if topics else ["ঢাকায় তীব্র যানজট ও জনভোগান্তি", "সোশ্যাল মিডিয়ায় আজকের ভাইরাল টপিক", "চলতি সপ্তাহের টপ ট্রেন্ডস"]
+    return topics if topics else ["ঢাকায় তীব্র যানজট ও জনভোগান্তি", "সোশ্যাল মিডিয়া আজকের ভাইরাল টপিক", "চলতি সপ্তাহের টপ ট্রেন্ডস"]
 
 @st.cache_data(ttl=120)
 def get_youtube_video_trends():
-    # রিয়েল গুগল ভিডিও সার্চ ও ইন্টেলিজেন্স ট্রেন্ড টপিকস
+    # রিয়েল গুগল ভিডিও সার্চ ও ইন্টেলিজেন্স ট্রেন্ড টপিকস (টপ ২০ আইটেম)
     return [
         "নতুন বাংলাদেশি নাটকের ভাইরাল ক্লিপ ও রিভিউ",
         "ইউটিউব ট্রেন্ডিং মিউজিক ভিডিও এবং গান",
         "আজকের টকশো এবং রাজনৈতিক গরম খবর",
         "নতুন মোবাইল ও গ্যাজেট আনবক্সিং ট্রেন্ড",
-        "ভাইরাল লাইফস্টাইল, ফুড ও ট্রাভেল ব্লগ"
+        "ভাইরাল লাইফস্টাইল, ফুড ও ট্রাভেল ব্লগ",
+        "ক্রিকেট ও ফুটবল খেলার ম্যাচ হাইলাইটস",
+        "জনপ্রিয় ইউটিউবারদের নতুন প্র্যাঙ্ক বা কমেডি ভিডিও",
+        "ডকুমেন্টারি ও রহস্যভিত্তিক বাংলা কন্টেন্ট",
+        "অনলাইন ইনকাম ও ফ্রিল্যান্সিং গাইড ভিডিও",
+        "রান্নার রেসিপি ও ঘরোয়া টিপস ট্রেন্ডস"
     ]
 
 @st.cache_data(ttl=120)
@@ -101,13 +106,13 @@ def get_live_portal_news():
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
             with urllib.request.urlopen(req, timeout=5) as response:
                 root = ET.fromstring(response.read())
-                for item in root.findall('.//item')[:8]:
+                for item in root.findall('.//item')[:10]:  # দুটি সাইট থেকে ১০টি করে মোট ২০টি ব্রেকিং নিউজ নিবে
                     title = item.find('title').text
                     if title and title not in news_titles:
                         news_titles.append(title)
         except Exception:
             continue
-    return news_titles if news_titles else ["শীর্ষ নিউজ পোর্টালগুলোর লিড নিউজ হেডলাইন"]
+    return news_titles[:20] if news_titles else ["শীর্ষ নিউজ পোর্টালগুলোর লিড নিউজ হেডলাইন"]
 
 # ডাটা ফেচ করা
 daily_search = get_google_daily_trends()
@@ -137,13 +142,13 @@ with col1:
     tab1, tab2, tab3, tab4 = st.tabs(["📈 Google Search", "📱 Facebook Viral", "🎥 YouTube Trends", "📰 News Portals"])
     
     with tab1:
-        st.dataframe(pd.DataFrame(daily_search, columns=['আজকের টপ সার্চ ট্রেন্ডস']), use_container_width=True, height=430)
+        st.dataframe(pd.DataFrame(daily_search, columns=['আজকের টপ সার্চ ট্রেন্ডস']), use_container_width=True, height=450)
     with tab2:
-        st.dataframe(pd.DataFrame(realtime_viral, columns=['ফেসবুক ও সোশ্যাল ট্রেন্ডিং হট টপিক']), use_container_width=True, height=430)
+        st.dataframe(pd.DataFrame(realtime_viral, columns=['ফেসবুক ও সোশ্যাল ট্রেন্ডিং হট টপিক']), use_container_width=True, height=450)
     with tab3:
-        st.dataframe(pd.DataFrame(youtube_trends, columns=['ইউটিউব ভিডিও কনটেন্ট আইডিয়া']), use_container_width=True, height=430)
+        st.dataframe(pd.DataFrame(youtube_trends, columns=['ইউটিউব ভিডিও কনটেন্ট আইডিয়া']), use_container_width=True, height=450)
     with tab4:
-        st.dataframe(pd.DataFrame(portal_news, columns=['প্রথম আলো ও বিডিনিউজ২৪ লাইভ হেডলাইন']), use_container_width=True, height=430)
+        st.dataframe(pd.DataFrame(portal_news, columns=['প্রথম আলো ও বিডিনিউজ২৪ লাইভ হেডলাইন']), use_container_width=True, height=450)
 
 with col2:
     st.markdown("### ✍️ এআই আল্ট্রা-প্রফেশনাল রাইটার")
@@ -179,7 +184,7 @@ with col2:
                     ### 📰 ২. ওয়েবসাইট ব্রেকিং নিউজ এবং এডিটরিয়াল গাইড
                     - **📌 ৩টি এক্সক্লুসিভ শিরোনাম:**
                       1. *ব্রেকিং নিউজ স্টাইল:* (Urgent, authoritative headline)
-                      2. *বিশ্লেषणধর্মী স্টাইল:* (Deep, analytical, click-worthy headline)
+                      2. *বিশ্লেষণধর্মী স্টাইল:* (Deep, analytical, click-worthy headline)
                       3. *সোশ্যাল মিডিয়া ভাইরাল স্টাইল:* (Super catchy for Facebook/YouTube preview link)
                     - **🔍 ইনভেস্টিগেティブ রিপোর্টিং আউটলাইন (৪টি পয়েন্ট):** (Give 4 deep analytical points guiding the reporter on exactly what data, local context, field reports, and expert quotes must be added to write a 1000-word premium article)
                     """

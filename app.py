@@ -63,7 +63,7 @@ with col2:
             with st.spinner("এআই (AI) আপনার জন্য কনটেন্ট আউটলাইন তৈরি করছে..."):
                 try:
                     # Gemini মডেল কল করা
-                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    model = genai.GenerativeModel('gemini-2.5-flash')
                     
                     prompt = f"""
                     You are an expert journalist for a Bangladeshi digital media house. 

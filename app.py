@@ -26,7 +26,7 @@ st.markdown("""
         border-left: 5px solid #1D4ED8; margin-bottom: 15px;
     }
     </style>
-""", unsafe_index=True)
+""", unsafe_allow_html=True)
 
 st.title("🔥 Media Trend Spotter Ultra Pro")
 st.markdown("🎯 **Premium Newsroom Intelligence Dashboard** | মিডিয়া হাউজের জন্য রিয়েল-টাইম ট্রেন্ড এনালাইজার")

@@ -318,6 +318,46 @@ for k, v in _DEFAULTS.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
+
+# ═════════════════════════════════════════════════════
+#  SOURCE CONFIG
+# ═════════════════════════════════════════════════════
+BD_SOURCES = [
+    ("prothomalo",   "প্রথম আলো",       "https://www.prothomalo.com/feed/"),
+    ("thedailystar", "The Daily Star",   "https://www.thedailystar.net/arcio/rss/"),
+    ("dhakatribune", "Dhaka Tribune",    "https://www.dhakatribune.com/feed"),
+    ("jugantor",     "যুগান্তর",         "https://www.jugantor.com/feed/"),
+    ("kalerkantho",  "কালের কণ্ঠ",      "https://www.kalerkantho.com/rss.xml"),
+    ("bdnews24",     "বিডিনিউজ২৪",      "https://bdnews24.com/feed"),
+    ("somoynews",    "সময় নিউজ",        "https://www.somoynews.tv/rss.xml"),
+    ("rtv",          "আরটিভি",           "https://www.rtvonline.com/feed"),
+    ("banglanews24", "বাংলানিউজ২৪",     "https://www.banglanews24.com/rss.xml"),
+]
+
+@st.cache_data(ttl=120, show_spinner=False)
+def fetch_rss(url: str, max_items: int = 15) -> list:
+    """Generic RSS fetcher used for coverage comparison."""
+    try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        })
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            root  = ET.fromstring(resp.read())
+            items = []
+            for item in root.findall(".//item")[:max_items]:
+                t = item.find("title")
+                l = item.find("link")
+                s = item.find("source")
+                if t is not None and t.text:
+                    items.append({
+                        "title":  t.text.strip(),
+                        "link":   (l.text or "").strip() if l is not None else "",
+                        "source": (s.text or "").strip() if s is not None else "",
+                    })
+            return items
+    except Exception:
+        return []
+
 # ═════════════════════════════════════════════════════
 #  DATA FETCHING
 # ═════════════════════════════════════════════════════
@@ -682,6 +722,24 @@ def ai_editorial_fn(key, topic, mode, tone, words):
 লক্ষ্য: ~{words} শব্দ। সম্পূর্ণ বাংলায় লেখো।""", words * 2)
 
 
+
+def ai_coveragegap(key, prothomalo_titles, other_titles):
+    """AI coverage gap analysis between Prothom Alo and other sources."""
+    raw = gemini(key, f"""তুমি একজন মিডিয়া বিশ্লেষক। নিচে প্রথম আলোর শিরোনাম এবং অন্যান্য মিডিয়ার শিরোনাম দেওয়া হলো। JSON:
+{{"gaps":["<গুরুত্বপূর্ণ কিন্তু প্রথম আলোতে নেই এমন গল্প>",...],"summary":"<বাংলায় সংক্ষিপ্ত বিশ্লেষণ>"}}
+
+প্রথম আলো:
+{chr(10).join(prothomalo_titles[:8])}
+
+অন্যান্য মিডিয়া:
+{chr(10).join(other_titles[:12])}""", 600)
+    try:
+        import json as _json
+        return _json.loads(re.sub(r'```json|```', '', raw).strip())
+    except Exception:
+        return {"gaps":[],"summary":"বিশ্লেষণ সম্ভব হয়নি।"}
+
+
 # ═════════════════════════════════════════════════════
 #  LOAD ALL DATA
 # ═════════════════════════════════════════════════════
@@ -856,7 +914,7 @@ st.write("")
 #  MAIN TABS
 # ═════════════════════════════════════════════════════
 (tab_news, tab_google, tab_yt, tab_fb,
- tab_ai, tab_aqi_tab, tab_content, tab_stats) = st.tabs([
+ tab_ai, tab_aqi_tab, tab_content, tab_coverage, tab_stats) = st.tabs([
     "📰 সংবাদ ফিড",
     "🔍 Google Trends",
     "▶️ YouTube Trends",
@@ -864,6 +922,7 @@ st.write("")
     "🤖 AI অ্যানালাইজার",
     "💨 বায়ু ও আবহাওয়া",
     "✍️ কনটেন্ট ইঞ্জিন",
+    "🔍 কভারেজ তুলনা",
     "📊 অ্যানালিটিক্স",
 ])
 
@@ -1551,6 +1610,134 @@ with tab_content:
 # ══════════════════════════════════════════
 #  TAB 8 — ANALYTICS DASHBOARD
 # ══════════════════════════════════════════
+
+
+# ══════════════════════════════════════════
+#  TAB 8 — COVERAGE COMPARISON
+# ══════════════════════════════════════════
+with tab_coverage:
+    st.markdown("""
+<div style="background:#fff8f0;border:1px solid #fde8c8;border-radius:12px;padding:16px;margin-bottom:20px">
+  <div style="font-weight:700;color:#ea580c;margin-bottom:6px">🔍 কভারেজ তুলনা — প্রথম আলো বনাম অন্যান্য</div>
+  <div style="font-size:13px;color:#444;line-height:1.6">
+  এই বিভাগে প্রথম আলো এবং অন্যান্য বাংলাদেশি ও আন্তর্জাতিক মিডিয়ার মধ্যে
+  সংবাদ কভারেজ তুলনা দেখানো হয়। AI গুরুত্বপূর্ণ সংবাদ যা প্রথম আলোতে নেই সেগুলো চিহ্নিত করে।
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    cov1, cov2 = st.columns([1.3, 1], gap="large")
+
+    with cov1:
+        st.markdown('<div class="np-sec"><div class="np-sec-title">📋 সংবাদ কভারেজ স্ট্যাটাস</div></div>', unsafe_allow_html=True)
+
+        # Fetch Prothom Alo titles
+        pa_items  = fetch_rss("https://www.prothomalo.com/feed/", 10)
+        pa_titles = [i["title"] for i in pa_items]
+
+        # Other BD sources
+        other_items = []
+        for _sid, _sname, _srss in BD_SOURCES[1:5]:
+            other_items.extend(fetch_rss(_srss, 5))
+        other_titles = [i["title"] for i in other_items]
+
+        _cov_map = {
+            "COVERED":     ("✅","কভার হয়েছে",  "#16a34a","#f0fdf4","#86efac"),
+            "PARTIAL":     ("🟡","আংশিক",        "#d4a017","#fffbeb","#fde68a"),
+            "NOT_COVERED": ("🔴","কভার হয়নি",   "#C8102E","#fef2f2","#fca5a5"),
+            "GAP_ALERT":   ("🚨","গ্যাপ!",        "#dc2626","#fee2e2","#fca5a5"),
+        }
+
+        def _check_cov(title):
+            pa_w = set()
+            for pt in pa_titles:
+                pa_w.update(re.findall(r'[\u0980-\u09FF]{3,}|[a-zA-Z]{4,}', pt.lower()))
+            t_w  = set(re.findall(r'[\u0980-\u09FF]{3,}|[a-zA-Z]{4,}', title.lower()))
+            ov   = len(t_w & pa_w)
+            if ov >= 3:   return "COVERED"
+            elif ov >= 1: return "PARTIAL"
+            return "NOT_COVERED"
+
+        gap_count_cov = 0
+        all_cov_items = (other_items + all_news[:8])[:15]
+        for itm in all_cov_items:
+            st_cov = _check_cov(itm["title"])
+            imp    = trend_score(itm["title"], kw_freq)
+            if st_cov == "NOT_COVERED" and imp >= 65:
+                st_cov = "GAP_ALERT"
+                gap_count_cov += 1
+            icon,lbl,tc,bgc,brc = _cov_map[st_cov]
+            is_gap = st_cov == "GAP_ALERT"
+            st.markdown(f"""
+<div style="background:{'#fff5f5' if is_gap else 'white'};border:1px solid {'#fca5a5' if is_gap else '#E8E4DC'};
+  border-radius:12px;padding:14px 16px;margin-bottom:8px;
+  {'border-top:3px solid #dc2626;' if is_gap else ''}">
+  {'<div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:6px">🚨 সম্ভাব্য কভারেজ গ্যাপ — প্রথম আলোতে নেই</div>' if is_gap else ''}
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:\'Noto Serif Bengali\',serif;font-weight:700;font-size:13px;
+        color:#1A1A1A;line-height:1.45;margin-bottom:6px">{itm['title'][:80]}...</div>
+      <div style="font-size:11px;color:#888">{itm.get('source','')[:30]}</div>
+    </div>
+    <span style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;
+      padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;
+      background:{bgc};color:{tc};border:1px solid {brc}">{icon} {lbl}</span>
+  </div>
+  <div style="margin-top:8px">
+    <div style="height:5px;background:#f0f0f0;border-radius:3px;overflow:hidden">
+      <div style="height:100%;border-radius:3px;width:{imp}%;
+        background:{'#C8102E' if imp>=80 else '#fb923c' if imp>=60 else '#86efac'}"></div>
+    </div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    with cov2:
+        total_cov = len(all_cov_items)
+        covered_n = max(0, total_cov - gap_count_cov - 2)
+        partial_n = max(0, total_cov - covered_n - gap_count_cov)
+
+        st.markdown(f"""
+<div style="background:white;border:1px solid #E8E4DC;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,0,0,.06)">
+  <div style="font-family:\'Noto Serif Bengali\',serif;font-weight:800;font-size:15px;margin-bottom:14px">📊 কভারেজ সারসংক্ষেপ</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;text-align:center">
+      <div style="font-family:\'Noto Serif Bengali\',serif;font-size:28px;font-weight:900;color:#16a34a">{covered_n}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">✅ কভার হয়েছে</div>
+    </div>
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px;text-align:center">
+      <div style="font-family:\'Noto Serif Bengali\',serif;font-size:28px;font-weight:900;color:#d4a017">{partial_n}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">🟡 আংশিক</div>
+    </div>
+    <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:12px;text-align:center">
+      <div style="font-family:\'Noto Serif Bengali\',serif;font-size:28px;font-weight:900;color:#C8102E">{gap_count_cov}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">🚨 কভারেজ গ্যাপ</div>
+    </div>
+    <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:12px;text-align:center">
+      <div style="font-family:\'Noto Serif Bengali\',serif;font-size:28px;font-weight:900;color:#7c3aed">{total_cov}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">📰 মোট চেক</div>
+    </div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+        st.markdown('<div class="np-sec" style="margin-top:4px"><div class="np-sec-title">📰 তুলনাকৃত সোর্স</div></div>', unsafe_allow_html=True)
+        src_html = '<div style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 12px">'
+        for _sid, _sname, _ in BD_SOURCES[:8]:
+            _is_pa = _sid == "prothomalo"
+            src_html += f'<span style="font-size:11px;padding:4px 10px;border-radius:100px;font-weight:600;{"background:#C8102E;color:white;" if _is_pa else "background:#f0f0f0;color:#444;border:1px solid #ddd;"}">{"⭐ " if _is_pa else ""}{_sname}</span>'
+        src_html += '</div>'
+        st.markdown(src_html, unsafe_allow_html=True)
+
+        if api_key:
+            st.markdown('<div class="np-sec"><div class="np-sec-title">🤖 AI কভারেজ গ্যাপ বিশ্লেষণ</div></div>', unsafe_allow_html=True)
+            if st.button("🤖 AI দিয়ে গ্যাপ বিশ্লেষণ করুন", key="btn_cov_ai"):
+                with st.spinner("AI বিশ্লেষণ করছে..."):
+                    _cov_result = ai_coveragegap(api_key, pa_titles, other_titles)
+                    if _cov_result.get("gaps"):
+                        for _gap in _cov_result["gaps"][:5]:
+                            st.markdown(f'<div style="padding:8px 14px;background:#fff5f5;border:1px solid #fca5a5;border-left:3px solid #C8102E;border-radius:0 8px 8px 0;margin-bottom:6px;font-size:13px;color:#1A1A1A">🚨 {_gap}</div>', unsafe_allow_html=True)
+                    if _cov_result.get("summary"):
+                        st.markdown(f'<div style="margin-top:10px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:12px 14px;font-size:13px;color:#444;line-height:1.7">📊 {_cov_result["summary"]}</div>', unsafe_allow_html=True)
+
+
 with tab_stats:
     import plotly.express as px
     import plotly.graph_objects as go

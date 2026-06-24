@@ -1661,7 +1661,7 @@ with tab_coverage:
         all_cov_items = (other_items + all_news[:8])[:15]
         for itm in all_cov_items:
             st_cov = _check_cov(itm["title"])
-            imp    = trend_score(itm["title"], kw_freq)
+            imp    = trend_score(itm["title"], kw_dict)
             if st_cov == "NOT_COVERED" and imp >= 65:
                 st_cov = "GAP_ALERT"
                 gap_count_cov += 1

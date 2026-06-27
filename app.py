@@ -322,17 +322,90 @@ for k, v in _DEFAULTS.items():
 # ═════════════════════════════════════════════════════
 #  SOURCE CONFIG
 # ═════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════
+#  COMPLETE 60-SOURCE ARRAY  (BD: 1-30 | INT: 31-60)
+#  Instruction: সম্পূর্ণ ৬০টি সোর্স ব্যবহার করতে হবে
+# ══════════════════════════════════════════════════════════════
+
+# 🇧🇩 BD_SOURCES (১-৩০) — id, bangla_name, rss_url, web_url
 BD_SOURCES = [
-    ("prothomalo",   "প্রথম আলো",       "https://www.prothomalo.com/feed/"),
-    ("thedailystar", "The Daily Star",   "https://www.thedailystar.net/arcio/rss/"),
-    ("dhakatribune", "Dhaka Tribune",    "https://www.dhakatribune.com/feed"),
-    ("jugantor",     "যুগান্তর",         "https://www.jugantor.com/feed/"),
-    ("kalerkantho",  "কালের কণ্ঠ",      "https://www.kalerkantho.com/rss.xml"),
-    ("bdnews24",     "বিডিনিউজ২৪",      "https://bdnews24.com/feed"),
-    ("somoynews",    "সময় নিউজ",        "https://www.somoynews.tv/rss.xml"),
-    ("rtv",          "আরটিভি",           "https://www.rtvonline.com/feed"),
-    ("banglanews24", "বাংলানিউজ২৪",     "https://www.banglanews24.com/rss.xml"),
+    # ── বাংলা সংবাদপত্র ──────────────────────────────────────
+    ("prothomalo",       "প্রথম আলো",            "https://www.prothomalo.com/feed/",                      "https://prothomalo.com"),
+    ("bd_pratidin",      "বাংলাদেশ প্রতিদিন",   "https://www.bd-pratidin.com/feed/",                     "https://bd-pratidin.com"),
+    ("jugantor",         "যুগান্তর",              "https://www.jugantor.com/feed/",                        "https://jugantor.com"),
+    ("kalerkantho",      "কালের কণ্ঠ",           "https://www.kalerkantho.com/rss.xml",                   "https://kalerkantho.com"),
+    ("samakal",          "দৈনিক সমকাল",          "https://samakal.com/feed/",                             "https://samakal.com"),
+    ("ittefaq",          "দৈনিক ইত্তেফাক",       "https://www.ittefaq.com.bd/feed/",                      "https://ittefaq.com.bd"),
+    ("mzamin",           "মানব জমিন",             "https://mzamin.com/feed.php",                           "https://mzamin.com"),
+    ("nayadiganta",      "নয়া দিগন্ত",           "https://www.dailynayadiganta.com/feed/",                "https://dailynayadiganta.com"),
+    ("inqilab",          "দৈনিক ইনকিলাব",        "https://www.dailyinqilab.com/feed/",                    "https://dailyinqilab.com"),
+    ("janakantha",       "দৈনিক জনকণ্ঠ",         "https://www.dailyjanakantha.com/feed/",                 "https://dailyjanakantha.com"),
+    ("bhorerkagoj",      "ভোরের কাগজ",            "https://www.bhorerkagoj.com/feed/",                     "https://bhorerkagoj.com"),
+    ("amadershomoy",     "আমাদের সময়",            "https://www.dainikamadershomoy.com/feed/",              "https://dainikamadershomoy.com"),
+    ("bdnews24",         "বিডিনিউজ২৪",           "https://bdnews24.com/feed",                             "https://bdnews24.com"),
+    ("banglanews24",     "বাংলানিউজ২৪",          "https://www.banglanews24.com/rss.xml",                  "https://banglanews24.com"),
+    ("jagonews24",       "জাগো নিউজ ২৪",         "https://www.jagonews24.com/feed/",                      "https://jagonews24.com"),
+    ("banglatribune",    "বাংলা ট্রিবিউন",        "https://www.banglatribune.com/feed/",                   "https://banglatribune.com"),
+    ("dhakapost",        "ঢাকা পোস্ট",            "https://www.dhakapost.com/feed/",                       "https://dhakapost.com"),
+    ("barta24",          "বার্তা২৪",              "https://barta24.com/feed/",                             "https://barta24.com"),
+    ("risingbd",         "রাইজিংবিডি",            "https://risingbd.com/feed",                             "https://risingbd.com"),
+    ("bd24live",         "বিডি২৪লাইভ",           "https://www.bd24live.com/feed/",                        "https://bd24live.com"),
+    # ── টেলিভিশন চ্যানেল ────────────────────────────────────
+    ("somoynews",        "সময় নিউজ",             "https://www.somoynews.tv/rss.xml",                      "https://somoynews.tv"),
+    ("jamunatv",         "যমুনা টেলিভিশন",       "https://jamuna.tv/feed/",                               "https://jamuna.tv"),
+    ("ntv",              "এনটিভি",                "https://www.ntvbd.com/rss.xml",                         "https://ntvbd.com"),
+    ("channel24",        "চ্যানেল ২৪",            "https://www.channel24.bd/feed/",                        "https://channel24.bd"),
+    ("channeli",         "চ্যানেল আই",            "https://channelionline.com/feed/",                      "https://channelionline.com"),
+    ("rtv",              "আরটিভি",                "https://www.rtvonline.com/feed",                        "https://rtvonline.com"),
+    # ── ইংরেজি (বাংলাদেশ) ──────────────────────────────────
+    ("thedailystar",     "The Daily Star",         "https://www.thedailystar.net/arcio/rss/",               "https://thedailystar.net"),
+    ("dhakatribune",     "Dhaka Tribune",          "https://www.dhakatribune.com/feed",                     "https://dhakatribune.com"),
+    ("tbsnews",          "The Business Standard",  "https://www.tbsnews.net/rss.xml",                       "https://tbsnews.net"),
+    ("thefinancialexpress","The Financial Express","https://thefinancialexpress.com.bd/feed/",               "https://thefinancialexpress.com.bd"),
 ]
+
+# 🌍 INT_SOURCES (৩১-৬০) — id, name, rss_url, web_url
+INT_SOURCES = [
+    # ── আন্তর্জাতিক সংবাদ সংস্থা ───────────────────────────
+    ("reuters",      "Reuters",                    "https://feeds.reuters.com/reuters/topNews",              "https://reuters.com"),
+    ("apnews",       "AP News",                    "https://feeds.apnews.com/rss/topnews",                  "https://apnews.com"),
+    ("afp",          "AFP",                        "https://www.afp.com/en/rss",                            "https://afp.com"),
+    ("bloomberg",    "Bloomberg",                  "https://feeds.bloomberg.com/markets/news.rss",           "https://bloomberg.com"),
+    # ── ব্রিটিশ মিডিয়া ─────────────────────────────────────
+    ("bbc",          "BBC News",                   "http://feeds.bbci.co.uk/news/rss.xml",                  "https://bbc.com"),
+    ("guardian",     "The Guardian",               "https://www.theguardian.com/world/rss",                 "https://theguardian.com"),
+    ("independent",  "The Independent",            "https://www.independent.co.uk/rss",                     "https://independent.co.uk"),
+    ("telegraph",    "The Telegraph",              "https://www.telegraph.co.uk/rss.xml",                   "https://telegraph.co.uk"),
+    ("ft",           "Financial Times",            "https://www.ft.com/rss/home/uk",                        "https://ft.com"),
+    ("economist",    "The Economist",              "https://www.economist.com/sections/science-technology/rss.xml", "https://economist.com"),
+    # ── আমেরিকান মিডিয়া ────────────────────────────────────
+    ("cnn",          "CNN",                        "http://rss.cnn.com/rss/edition.rss",                    "https://cnn.com"),
+    ("nytimes",      "The New York Times",         "https://rss.nytimes.com/services/xml/rss/nyt/World.xml","https://nytimes.com"),
+    ("washpost",     "The Washington Post",        "https://feeds.washingtonpost.com/rss/world",             "https://washingtonpost.com"),
+    ("wsj",          "Wall Street Journal",        "https://feeds.a.dj.com/rss/RSSWorldNews.xml",           "https://wsj.com"),
+    ("time",         "Time",                       "https://feeds.feedburner.com/time/topstories",           "https://time.com"),
+    ("nbcnews",      "NBC News",                   "https://feeds.nbcnews.com/nbcnews/public/news",          "https://nbcnews.com"),
+    ("abcnews",      "ABC News",                   "https://feeds.abcnews.com/abcnews/topstories",           "https://abcnews.com"),
+    ("foxnews",      "Fox News",                   "https://moxie.foxnews.com/google-publisher/world.xml",   "https://foxnews.com"),
+    ("huffpost",     "HuffPost",                   "https://www.huffpost.com/section/front-page/feed",       "https://huffpost.com"),
+    ("politico",     "Politico",                   "https://rss.politico.com/politics-news.xml",             "https://politico.com"),
+    # ── মধ্যপ্রাচ্য ও আন্তর্জাতিক ──────────────────────────
+    ("aljazeera",    "Al Jazeera",                 "https://www.aljazeera.com/xml/rss/all.xml",              "https://aljazeera.com"),
+    ("scmp",         "South China Morning Post",   "https://www.scmp.com/rss/91/feed",                      "https://scmp.com"),
+    ("nikkei",       "Nikkei Asia",               "https://asia.nikkei.com/rss/feed/nar",                   "https://nikkei.com"),
+    ("toi",          "Times of India",             "https://feeds.feedburner.com/ndtvnews-top-stories",      "https://indiatimes.com"),
+    ("arabnews",     "Arab News",                  "https://www.arabnews.com/rss.xml",                       "https://arabnews.com"),
+    # ── ইউরোপীয় মিডিয়া ────────────────────────────────────
+    ("dw",           "Deutsche Welle (DW)",        "https://rss.dw.com/xml/rss-en-world",                    "https://dw.com"),
+    ("france24",     "France 24",                  "https://www.france24.com/en/rss",                        "https://france24.com"),
+    ("euronews",     "Euronews",                   "https://www.euronews.com/rss?format=mrss&level=theme&name=news", "https://euronews.com"),
+    # ── অস্ট্রেলিয়া ও কানাডা ───────────────────────────────
+    ("smh",          "Sydney Morning Herald",      "https://www.smh.com.au/rss/feed.xml",                    "https://smh.com.au"),
+    ("cbc",          "CBC News",                   "https://www.cbc.ca/cmlink/rss-topstories",               "https://cbc.ca"),
+]
+
+# Combined for easy iteration
+ALL_60_SOURCES = BD_SOURCES + INT_SOURCES  # total: 60
 
 @st.cache_data(ttl=120, show_spinner=False)
 def fetch_rss(url: str, max_items: int = 15) -> list:
@@ -1618,124 +1691,348 @@ with tab_content:
 with tab_coverage:
     st.markdown("""
 <div style="background:#fff8f0;border:1px solid #fde8c8;border-radius:12px;padding:16px;margin-bottom:20px">
-  <div style="font-weight:700;color:#ea580c;margin-bottom:6px">🔍 কভারেজ তুলনা — প্রথম আলো বনাম অন্যান্য</div>
+  <div style="font-weight:700;color:#ea580c;font-size:15px;margin-bottom:6px">
+    🔍 কভারেজ তুলনা — সম্পূর্ণ ৬০টি সোর্স অ্যানালাইসিস
+  </div>
   <div style="font-size:13px;color:#444;line-height:1.6">
-  এই বিভাগে প্রথম আলো এবং অন্যান্য বাংলাদেশি ও আন্তর্জাতিক মিডিয়ার মধ্যে
-  সংবাদ কভারেজ তুলনা দেখানো হয়। AI গুরুত্বপূর্ণ সংবাদ যা প্রথম আলোতে নেই সেগুলো চিহ্নিত করে।
+  ৩০টি বাংলাদেশি (BD_SOURCES) + ৩০টি আন্তর্জাতিক (INT_SOURCES) =
+  সর্বমোট <b>৬০টি সোর্স</b> স্ক্যান করে কভারেজ মিলিয়ে দেখা হচ্ছে।
+  প্রতিটি চেকে ২০-৫০টি সুনির্দিষ্ট ফিডব্যাক পয়েন্ট তৈরি হয়।
   </div>
 </div>""", unsafe_allow_html=True)
 
-    cov1, cov2 = st.columns([1.3, 1], gap="large")
+    # ── Input ──────────────────────────────────────────────────
+    cov_input = st.text_area(
+        "📰 নিউজ শিরোনাম বা লিংক দিন (এক বা একাধিক)",
+        placeholder="যেমন: 'বাংলাদেশে নতুন বন্যা সতর্কতা' অথবা https://prothomalo.com/...",
+        height=100, key="cov_input"
+    )
 
-    with cov1:
-        st.markdown('<div class="np-sec"><div class="np-sec-title">📋 সংবাদ কভারেজ স্ট্যাটাস</div></div>', unsafe_allow_html=True)
+    cov_col1, cov_col2 = st.columns([1,1])
+    with cov_col1:
+        depth = st.selectbox("বিশ্লেষণের গভীরতা",
+            ["স্ট্যান্ডার্ড (২০ পয়েন্ট)","বিস্তারিত (৩৫ পয়েন্ট)","সম্পূর্ণ (৫০ পয়েন্ট)"],
+            key="cov_depth")
+    with cov_col2:
+        focus = st.selectbox("ফোকাস এরিয়া",
+            ["সব মিডিয়া","শুধু বাংলাদেশ","শুধু আন্তর্জাতিক","টপ পোর্টাল (Top 20)"],
+            key="cov_focus")
 
-        # Fetch Prothom Alo titles
-        pa_items  = fetch_rss("https://www.prothomalo.com/feed/", 10)
-        pa_titles = [i["title"] for i in pa_items]
+    run_cov = st.button("🔍 ৬০টি সোর্স স্ক্যান করুন", key="btn_run_cov", use_container_width=True)
 
-        # Other BD sources
-        other_items = []
-        for _sid, _sname, _srss in BD_SOURCES[1:5]:
-            other_items.extend(fetch_rss(_srss, 5))
-        other_titles = [i["title"] for i in other_items]
+    # ── Live RSS-based quick check ──────────────────────────────
+    st.divider()
 
-        _cov_map = {
-            "COVERED":     ("✅","কভার হয়েছে",  "#16a34a","#f0fdf4","#86efac"),
-            "PARTIAL":     ("🟡","আংশিক",        "#d4a017","#fffbeb","#fde68a"),
-            "NOT_COVERED": ("🔴","কভার হয়নি",   "#C8102E","#fef2f2","#fca5a5"),
-            "GAP_ALERT":   ("🚨","গ্যাপ!",        "#dc2626","#fee2e2","#fca5a5"),
-        }
+    # Fetch from all 60 sources
+    @st.cache_data(ttl=300, show_spinner=False)
+    def fetch_all_60_sources(max_per=5):
+        """Fetch RSS from all 60 sources and return title lists."""
+        results = {}
+        all_srcs = BD_SOURCES + INT_SOURCES
+        for src in all_srcs:
+            sid, sname, srss = src[0], src[1], src[2]
+            items = fetch_rss(srss, max_per)
+            results[sid] = {
+                "name":   sname,
+                "url":    src[3] if len(src) > 3 else srss,
+                "titles": [i["title"] for i in items],
+                "count":  len(items),
+                "live":   len(items) > 0,
+            }
+        return results
 
-        def _check_cov(title):
-            pa_w = set()
-            for pt in pa_titles:
-                pa_w.update(re.findall(r'[\u0980-\u09FF]{3,}|[a-zA-Z]{4,}', pt.lower()))
-            t_w  = set(re.findall(r'[\u0980-\u09FF]{3,}|[a-zA-Z]{4,}', title.lower()))
-            ov   = len(t_w & pa_w)
-            if ov >= 3:   return "COVERED"
-            elif ov >= 1: return "PARTIAL"
-            return "NOT_COVERED"
+    with st.spinner("⏳ সম্পূর্ণ ৬০টি সোর্স থেকে RSS ফিড লোড হচ্ছে..."):
+        all_src_data = fetch_all_60_sources(5)
 
-        gap_count_cov = 0
-        all_cov_items = (other_items + all_news[:8])[:15]
-        for itm in all_cov_items:
-            st_cov = _check_cov(itm["title"])
-            imp    = trend_score(itm["title"], kw_dict)
-            if st_cov == "NOT_COVERED" and imp >= 65:
-                st_cov = "GAP_ALERT"
-                gap_count_cov += 1
-            icon,lbl,tc,bgc,brc = _cov_map[st_cov]
-            is_gap = st_cov == "GAP_ALERT"
+    # ── Source Status Grid ──────────────────────────────────────
+    live_bd  = sum(1 for s in BD_SOURCES  if all_src_data.get(s[0],{}).get("live"))
+    live_int = sum(1 for s in INT_SOURCES if all_src_data.get(s[0],{}).get("live"))
+
+    g1,g2,g3,g4 = st.columns(4)
+    with g1:
+        st.markdown(f"""<div class="np-kpi" style="--c:#C8102E">
+          <div class="np-kpi-icon">🇧🇩</div>
+          <div class="np-kpi-val">30</div>
+          <div class="np-kpi-label">BD সোর্স</div>
+          <div class="np-kpi-delta" style="color:#16a34a">✅ {live_bd} লাইভ</div>
+        </div>""", unsafe_allow_html=True)
+    with g2:
+        st.markdown(f"""<div class="np-kpi" style="--c:#1D4ED8">
+          <div class="np-kpi-icon">🌍</div>
+          <div class="np-kpi-val">30</div>
+          <div class="np-kpi-label">INT সোর্স</div>
+          <div class="np-kpi-delta" style="color:#16a34a">✅ {live_int} লাইভ</div>
+        </div>""", unsafe_allow_html=True)
+    with g3:
+        total_live = live_bd + live_int
+        st.markdown(f"""<div class="np-kpi" style="--c:#16a34a">
+          <div class="np-kpi-icon">📡</div>
+          <div class="np-kpi-val">{total_live}</div>
+          <div class="np-kpi-label">মোট লাইভ ফিড</div>
+          <div class="np-kpi-delta">৬০ এর মধ্যে</div>
+        </div>""", unsafe_allow_html=True)
+    with g4:
+        total_articles = sum(d.get("count",0) for d in all_src_data.values())
+        st.markdown(f"""<div class="np-kpi" style="--c:#7C3AED">
+          <div class="np-kpi-icon">📰</div>
+          <div class="np-kpi-val">{total_articles}</div>
+          <div class="np-kpi-label">মোট আর্টিকেল</div>
+          <div class="np-kpi-delta">সব সোর্স থেকে</div>
+        </div>""", unsafe_allow_html=True)
+
+    st.write("")
+
+    # ── AI-powered 60-source cross-check ───────────────────────
+    if run_cov and cov_input.strip():
+        if not api_key:
+            st.error("⚠ Gemini API Key প্রয়োজন — সাইডবারে দিন")
+        else:
+            target_points = 20 if "২০" in depth else 35 if "৩৫" in depth else 50
+
+            # Collect all titles from 60 sources
+            bd_titles_all  = []
+            int_titles_all = []
+            for src in BD_SOURCES:
+                bd_titles_all.extend(all_src_data.get(src[0],{}).get("titles",[]))
+            for src in INT_SOURCES:
+                int_titles_all.extend(all_src_data.get(src[0],{}).get("titles",[]))
+
+            # Build source status for prompt
+            bd_status_txt = "\n".join(
+                f"  {i+1}. {s[1]} ({s[0]}): {'✅ লাইভ (' + str(all_src_data.get(s[0],{}).get('count',0)) + ' আর্টিকেল)' if all_src_data.get(s[0],{}).get('live') else '❌ ফিড পাওয়া যায়নি'}"
+                for i, s in enumerate(BD_SOURCES)
+            )
+            int_status_txt = "\n".join(
+                f"  {i+31}. {s[1]} ({s[0]}): {'✅ লাইভ (' + str(all_src_data.get(s[0],{}).get('count',0)) + ' আর্টিকেল)' if all_src_data.get(s[0],{}).get('live') else '❌ ফিড পাওয়া যায়নি'}"
+                for i, s in enumerate(INT_SOURCES)
+            )
+
+            prompt = f"""তুমি একটি অটোমেটেড নিউজ ক্রস-রেফারেন্সিং সিস্টেমের কোর AI ইঞ্জিন।
+
+## ইউজারের পঠিত নিউজ:
+"{cov_input.strip()}"
+
+## সম্পূর্ণ ৬০টি সোর্সের RSS স্ট্যাটাস:
+
+### 🇧🇩 BD_SOURCES (১-৩০):
+{bd_status_txt}
+
+### 🌍 INT_SOURCES (৩১-৬০):
+{int_status_txt}
+
+## বাংলাদেশি মিডিয়ার সাম্প্রতিক শিরোনাম (নমুনা):
+{chr(10).join(bd_titles_all[:20])}
+
+## আন্তর্জাতিক মিডিয়ার সাম্প্রতিক শিরোনাম (নমুনা):
+{chr(10).join(int_titles_all[:20])}
+
+## তোমার কাজ:
+নিচের নিয়ম মেনে ঠিক {target_points}টি সুনির্দিষ্ট ফিডব্যাক পয়েন্ট তৈরি করো:
+
+**পয়েন্ট ১-১০: 🇧🇩 বাংলাদেশি মিডিয়া বিশ্লেষণ (BD_SOURCES থেকে)**
+- প্রতিটি পয়েন্টে সুনির্দিষ্ট পোর্টালের নাম উল্লেখ করো
+- কে প্রকাশ করেছে, কে করেনি স্পষ্ট বলো
+- সম্পাদকীয় কোণ (Editorial Angle) উল্লেখ করো
+- উদাহরণ: "প্রথম আলো: ✅ প্রকাশ করেছে — বিস্তারিত প্রতিবেদন সহ"
+- উদাহরণ: "যুগান্তর: ❌ প্রকাশ করেনি — কভারেজ গ্যাপ"
+
+**পয়েন্ট ১১-২০: 🌍 আন্তর্জাতিক মিডিয়া বিশ্লেষণ (INT_SOURCES থেকে)**
+- Reuters, BBC, AP, Al Jazeera সহ অন্যান্যদের অবস্থান বলো
+- আন্তর্জাতিক দৃষ্টিভঙ্গি ও ফ্রেমিং বিশ্লেষণ করো
+
+**পয়েন্ট ২১-{target_points}: 📊 গভীর বিশ্লেষণ**
+- তথ্যের শূন্যতা (Information Gap) চিহ্নিত করো
+- সম্পাদকীয় পক্ষপাত (Editorial Bias) বিশ্লেষণ করো
+- ট্রেন্ড অ্যানালাইসিস করো
+- পাঠকের জন্য সুপারিশ দাও
+
+## নিয়ম:
+- প্রতিটি পয়েন্ট বাংলায় লেখো
+- পয়েন্ট সংখ্যা অবশ্যই {target_points}টি হতে হবে
+- প্রতিটি পয়েন্টে emoji ব্যবহার করো
+- সুনির্দিষ্ট পোর্টালের নাম দিয়ে শুরু করো
+- কোনো পয়েন্ট জেনেরিক বা অস্পষ্ট হবে না"""
+
+            with st.spinner(f"🤖 Gemini AI — ৬০টি সোর্স বিশ্লেষণ করে {target_points}টি ফিডব্যাক পয়েন্ট তৈরি হচ্ছে..."):
+                ai_cov_output = gemini(api_key, prompt, max_tok=4000)
+
             st.markdown(f"""
-<div style="background:{'#fff5f5' if is_gap else 'white'};border:1px solid {'#fca5a5' if is_gap else '#E8E4DC'};
-  border-radius:12px;padding:14px 16px;margin-bottom:8px;
-  {'border-top:3px solid #dc2626;' if is_gap else ''}">
-  {'<div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:6px">🚨 সম্ভাব্য কভারেজ গ্যাপ — প্রথম আলোতে নেই</div>' if is_gap else ''}
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-    <div style="flex:1;min-width:0">
-      <div style="font-family:\'Noto Serif Bengali\',serif;font-weight:700;font-size:13px;
-        color:#1A1A1A;line-height:1.45;margin-bottom:6px">{itm['title'][:80]}...</div>
-      <div style="font-size:11px;color:#888">{itm.get('source','')[:30]}</div>
+<div style="background:white;border:1px solid #E8E4DC;border-top:3px solid #C8102E;
+  border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.06)">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <span style="font-size:20px">🤖</span>
+    <div>
+      <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;font-size:16px">
+        AI কভারেজ বিশ্লেষণ — {target_points}টি ফিডব্যাক পয়েন্ট
+      </div>
+      <div style="font-size:11px;color:#888">৬০টি সোর্স · {live_bd} BD Live · {live_int} INT Live</div>
     </div>
-    <span style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;
-      padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;
-      background:{bgc};color:{tc};border:1px solid {brc}">{icon} {lbl}</span>
   </div>
-  <div style="margin-top:8px">
-    <div style="height:5px;background:#f0f0f0;border-radius:3px;overflow:hidden">
-      <div style="height:100%;border-radius:3px;width:{imp}%;
-        background:{'#C8102E' if imp>=80 else '#fb923c' if imp>=60 else '#86efac'}"></div>
+  <div style="font-family:'Hind Siliguri',sans-serif;font-size:14px;line-height:1.9;color:#444">
+""", unsafe_allow_html=True)
+            st.markdown(ai_cov_output)
+            st.markdown("</div></div>", unsafe_allow_html=True)
+
+            # Download
+            st.download_button(
+                "⬇ বিশ্লেষণ ডাউনলোড করুন (.txt)",
+                data=f"নিউজ: {cov_input}\n\nবিশ্লেষণ তারিখ: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n{ai_cov_output}",
+                file_name=f"coverage_analysis_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
+                mime="text/plain", use_container_width=True
+            )
+
+    elif run_cov and not cov_input.strip():
+        st.warning("⚠ উপরের ঘরে নিউজ শিরোনাম বা লিংক দিন")
+
+    # ── 60-Source Status Grid ───────────────────────────────────
+    st.divider()
+    st.markdown('<div class="np-sec"><div class="np-sec-title">📡 সম্পূর্ণ ৬০টি সোর্সের লাইভ স্ট্যাটাস</div></div>',
+                unsafe_allow_html=True)
+
+    tab_bd, tab_int = st.tabs(["🇧🇩 বাংলাদেশ (১-৩০)", "🌍 আন্তর্জাতিক (৩১-৬০)"])
+
+    with tab_bd:
+        st.markdown('<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px">', unsafe_allow_html=True)
+        for i, src in enumerate(BD_SOURCES):
+            sid, sname = src[0], src[1]
+            info = all_src_data.get(sid, {})
+            live = info.get("live", False)
+            cnt  = info.get("count", 0)
+            url  = src[3] if len(src) > 3 else "#"
+            st.markdown(f"""
+<div style="background:{'#f0fdf4' if live else '#fef2f2'};border:1px solid {'#86efac' if live else '#fca5a5'};
+  border-radius:10px;padding:10px 12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:10px;font-weight:700;color:#888;font-family:monospace">#{i+1}</span>
+    <span style="font-size:11px;font-weight:700;color:{'#16a34a' if live else '#C8102E'}">
+      {'✅' if live else '❌'} {cnt if live else '—'}
+    </span>
+  </div>
+  <div style="font-size:12.5px;font-weight:700;color:#1A1A1A;margin-top:4px;line-height:1.3">{sname}</div>
+  <div style="font-size:10px;color:#888;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{url.replace('https://','')}</div>
+</div>""", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab_int:
+        st.markdown('<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px">', unsafe_allow_html=True)
+        for i, src in enumerate(INT_SOURCES):
+            sid, sname = src[0], src[1]
+            info = all_src_data.get(sid, {})
+            live = info.get("live", False)
+            cnt  = info.get("count", 0)
+            url  = src[3] if len(src) > 3 else "#"
+            st.markdown(f"""
+<div style="background:{'#eff6ff' if live else '#fef2f2'};border:1px solid {'#bfdbfe' if live else '#fca5a5'};
+  border-radius:10px;padding:10px 12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:10px;font-weight:700;color:#888;font-family:monospace">#{i+31}</span>
+    <span style="font-size:11px;font-weight:700;color:{'#1d4ed8' if live else '#C8102E'}">
+      {'✅' if live else '❌'} {cnt if live else '—'}
+    </span>
+  </div>
+  <div style="font-size:12.5px;font-weight:700;color:#1A1A1A;margin-top:4px;line-height:1.3">{sname}</div>
+  <div style="font-size:10px;color:#888;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{url.replace('https://','')}</div>
+</div>""", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # ── Quick RSS Coverage Check (without AI) ──────────────────
+    st.divider()
+    st.markdown('<div class="np-sec"><div class="np-sec-title">⚡ দ্রুত কভারেজ চেক (RSS ভিত্তিক)</div></div>',
+                unsafe_allow_html=True)
+    quick_query = st.text_input("কীওয়ার্ড দিয়ে সার্চ করুন",
+        placeholder="যেমন: বন্যা, ক্রিকেট, বাজেট, AI ...", key="cov_quick")
+
+    if quick_query.strip():
+        qw = set(re.findall(r'[\u0980-\u09FF]{2,}|[a-zA-Z]{3,}', quick_query.lower()))
+        found_bd, missed_bd, found_int, missed_int = [], [], [], []
+
+        for src in BD_SOURCES:
+            sid, sname = src[0], src[1]
+            titles = all_src_data.get(sid,{}).get("titles",[])
+            matched = any(
+                any(w in t.lower() for w in qw)
+                for t in titles
+            )
+            (found_bd if matched else missed_bd).append(sname)
+
+        for src in INT_SOURCES:
+            sid, sname = src[0], src[1]
+            titles = all_src_data.get(sid,{}).get("titles",[])
+            matched = any(
+                any(w in t.lower() for w in qw)
+                for t in titles
+            )
+            (found_int if matched else missed_int).append(sname)
+
+        r1, r2 = st.columns(2)
+        with r1:
+            st.markdown(f"""
+<div style="background:white;border:1px solid #E8E4DC;border-radius:14px;padding:16px">
+  <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;font-size:14px;margin-bottom:12px">
+    🇧🇩 বাংলাদেশি মিডিয়া
+  </div>
+  <div style="margin-bottom:10px">
+    <div style="font-size:11px;font-weight:700;color:#16a34a;margin-bottom:6px">
+      ✅ প্রকাশ করেছে ({len(found_bd)}/30)
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">
+      {''.join(f'<span style="font-size:10px;background:#f0fdf4;border:1px solid #86efac;color:#16a34a;padding:2px 8px;border-radius:100px;font-weight:600">{s}</span>' for s in found_bd) or '<span style="font-size:11px;color:#888">কোনো মিল নেই</span>'}
+    </div>
+  </div>
+  <div>
+    <div style="font-size:11px;font-weight:700;color:#C8102E;margin-bottom:6px">
+      ❌ প্রকাশ করেনি ({len(missed_bd)}/30)
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">
+      {''.join(f'<span style="font-size:10px;background:#fef2f2;border:1px solid #fca5a5;color:#C8102E;padding:2px 8px;border-radius:100px;font-weight:600">{s}</span>' for s in missed_bd[:12]) or '<span style="font-size:11px;color:#888">সব প্রকাশ করেছে</span>'}
+      {'<span style="font-size:10px;color:#888">+আরও...</span>' if len(missed_bd) > 12 else ''}
     </div>
   </div>
 </div>""", unsafe_allow_html=True)
 
-    with cov2:
-        total_cov = len(all_cov_items)
-        covered_n = max(0, total_cov - gap_count_cov - 2)
-        partial_n = max(0, total_cov - covered_n - gap_count_cov)
+        with r2:
+            st.markdown(f"""
+<div style="background:white;border:1px solid #E8E4DC;border-radius:14px;padding:16px">
+  <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;font-size:14px;margin-bottom:12px">
+    🌍 আন্তর্জাতিক মিডিয়া
+  </div>
+  <div style="margin-bottom:10px">
+    <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px">
+      ✅ প্রকাশ করেছে ({len(found_int)}/30)
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">
+      {''.join(f'<span style="font-size:10px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;padding:2px 8px;border-radius:100px;font-weight:600">{s}</span>' for s in found_int) or '<span style="font-size:11px;color:#888">কোনো মিল নেই</span>'}
+    </div>
+  </div>
+  <div>
+    <div style="font-size:11px;font-weight:700;color:#C8102E;margin-bottom:6px">
+      ❌ প্রকাশ করেনি ({len(missed_int)}/30)
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">
+      {''.join(f'<span style="font-size:10px;background:#fef2f2;border:1px solid #fca5a5;color:#C8102E;padding:2px 8px;border-radius:100px;font-weight:600">{s}</span>' for s in missed_int[:12]) or '<span style="font-size:11px;color:#888">সব প্রকাশ করেছে</span>'}
+      {'<span style="font-size:10px;color:#888">+আরও...</span>' if len(missed_int) > 12 else ''}
+    </div>
+  </div>
+</div>""", unsafe_allow_html=True)
 
+        # Summary bar
+        total_found  = len(found_bd) + len(found_int)
+        total_missed = len(missed_bd) + len(missed_int)
+        cov_pct = round(total_found / 60 * 100)
         st.markdown(f"""
-<div style="background:white;border:1px solid #E8E4DC;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,0,0,.06)">
-  <div style="font-family:\'Noto Serif Bengali\',serif;font-weight:800;font-size:15px;margin-bottom:14px">📊 কভারেজ সারসংক্ষেপ</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;text-align:center">
-      <div style="font-family:\'Noto Serif Bengali\',serif;font-size:28px;font-weight:900;color:#16a34a">{covered_n}</div>
-      <div style="font-size:11px;color:#888;margin-top:2px">✅ কভার হয়েছে</div>
-    </div>
-    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px;text-align:center">
-      <div style="font-family:\'Noto Serif Bengali\',serif;font-size:28px;font-weight:900;color:#d4a017">{partial_n}</div>
-      <div style="font-size:11px;color:#888;margin-top:2px">🟡 আংশিক</div>
-    </div>
-    <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:12px;text-align:center">
-      <div style="font-family:\'Noto Serif Bengali\',serif;font-size:28px;font-weight:900;color:#C8102E">{gap_count_cov}</div>
-      <div style="font-size:11px;color:#888;margin-top:2px">🚨 কভারেজ গ্যাপ</div>
-    </div>
-    <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:12px;text-align:center">
-      <div style="font-family:\'Noto Serif Bengali\',serif;font-size:28px;font-weight:900;color:#7c3aed">{total_cov}</div>
-      <div style="font-size:11px;color:#888;margin-top:2px">📰 মোট চেক</div>
-    </div>
+<div style="background:white;border:1px solid #E8E4DC;border-radius:14px;padding:16px;margin-top:10px">
+  <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:6px">
+    <span>📊 "{quick_query}" কভারেজ রেট</span>
+    <span style="color:{'#16a34a' if cov_pct>=50 else '#C8102E'}">{cov_pct}% ({total_found}/60 সোর্স)</span>
+  </div>
+  <div style="height:10px;background:#f0f0f0;border-radius:5px;overflow:hidden">
+    <div style="height:100%;border-radius:5px;background:{'#16a34a' if cov_pct>=50 else '#C8102E'};width:{cov_pct}%;transition:width .5s"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-top:5px">
+    <span>✅ {total_found} প্রকাশ করেছে</span>
+    <span>❌ {total_missed} প্রকাশ করেনি</span>
   </div>
 </div>""", unsafe_allow_html=True)
-
-        st.markdown('<div class="np-sec" style="margin-top:4px"><div class="np-sec-title">📰 তুলনাকৃত সোর্স</div></div>', unsafe_allow_html=True)
-        src_html = '<div style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 12px">'
-        for _sid, _sname, _ in BD_SOURCES[:8]:
-            _is_pa = _sid == "prothomalo"
-            src_html += f'<span style="font-size:11px;padding:4px 10px;border-radius:100px;font-weight:600;{"background:#C8102E;color:white;" if _is_pa else "background:#f0f0f0;color:#444;border:1px solid #ddd;"}">{"⭐ " if _is_pa else ""}{_sname}</span>'
-        src_html += '</div>'
-        st.markdown(src_html, unsafe_allow_html=True)
-
-        if api_key:
-            st.markdown('<div class="np-sec"><div class="np-sec-title">🤖 AI কভারেজ গ্যাপ বিশ্লেষণ</div></div>', unsafe_allow_html=True)
-            if st.button("🤖 AI দিয়ে গ্যাপ বিশ্লেষণ করুন", key="btn_cov_ai"):
-                with st.spinner("AI বিশ্লেষণ করছে..."):
-                    _cov_result = ai_coveragegap(api_key, pa_titles, other_titles)
-                    if _cov_result.get("gaps"):
-                        for _gap in _cov_result["gaps"][:5]:
-                            st.markdown(f'<div style="padding:8px 14px;background:#fff5f5;border:1px solid #fca5a5;border-left:3px solid #C8102E;border-radius:0 8px 8px 0;margin-bottom:6px;font-size:13px;color:#1A1A1A">🚨 {_gap}</div>', unsafe_allow_html=True)
-                    if _cov_result.get("summary"):
-                        st.markdown(f'<div style="margin-top:10px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:12px 14px;font-size:13px;color:#444;line-height:1.7">📊 {_cov_result["summary"]}</div>', unsafe_allow_html=True)
 
 
 with tab_stats:

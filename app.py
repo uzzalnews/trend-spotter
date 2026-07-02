@@ -407,54 +407,133 @@ INT_SOURCES = [
 # Combined for easy iteration
 ALL_60_SOURCES = BD_SOURCES + INT_SOURCES  # total: 60
 
-@st.cache_data(ttl=120, show_spinner=False)
+# ── Bad link patterns to reject ────────────────────────────
+_BAD_LINK_PATTERNS = [
+    "/revisions", "/node/", "factcheckbangla", "factcheck.afp",
+    "/tag/", "/tags/", "/author/", "/category/", "/page/",
+    "/feed", "/rss", "/amp/", "?utm_", "#comment",
+]
+_BAD_TITLE_PATTERNS = [
+    "AFP", "factcheck", "fact check", "fact-check",
+]
+
+def _is_valid_news_link(link: str, title: str) -> bool:
+    """
+    Return True only if link looks like a real article (not homepage,
+    category, factcheck node, revision, tag page, etc.)
+    """
+    if not link:
+        return False
+    link_l  = link.lower()
+    title_l = title.lower()
+
+    # Reject known bad patterns in URL
+    for pat in _BAD_LINK_PATTERNS:
+        if pat in link_l:
+            return False
+
+    # Reject bad title patterns (factcheck pages, etc.)
+    for pat in _BAD_TITLE_PATTERNS:
+        if pat in title_l:
+            return False
+
+    # Must have a meaningful path (at least 3 slashes = real article)
+    try:
+        path = link_l.split("://", 1)[-1]          # strip scheme
+        path = path.split("?")[0].split("#")[0]     # strip query/anchor
+        parts = [p for p in path.split("/") if p]  # non-empty segments
+        # First segment is domain, rest is path
+        path_parts = parts[1:]                      # skip domain
+        if len(path_parts) == 0:
+            return False  # homepage
+        # Must have at least one segment with digits OR length > 20 (slug)
+        has_slug = any(
+            any(c.isdigit() for c in p) or len(p) > 15
+            for p in path_parts
+        )
+        if not has_slug and len(path_parts) <= 1:
+            return False  # category page like /entertainment
+    except Exception:
+        return False
+
+    return True
+
+def _parse_pubdate(pub_text: str):
+    """Parse RSS pubDate string → datetime (timezone-naive UTC)."""
+    if not pub_text:
+        return None
+    text = pub_text.strip()
+    # Remove timezone name that Python can't parse
+    text = re.sub(r' (GMT|UTC|BST|EST|PST|BDT|IST|[A-Z]{2,4})$', '', text)
+    for fmt in [
+        "%a, %d %b %Y %H:%M:%S %z",
+        "%a, %d %b %Y %H:%M:%S",
+        "%Y-%m-%dT%H:%M:%S%z",
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%d %H:%M:%S",
+    ]:
+        try:
+            dt = datetime.strptime(text[:31], fmt)
+            # Convert to UTC naive
+            if dt.tzinfo is not None:
+                import calendar
+                ts = calendar.timegm(dt.utctimetuple())
+                dt = datetime.utcfromtimestamp(ts)
+            return dt
+        except Exception:
+            continue
+    return None
+
+def _hours_ago(pub_dt) -> float:
+    """Return how many hours ago pub_dt was (UTC naive vs UTC now)."""
+    if pub_dt is None:
+        return 0.0
+    try:
+        utc_now = datetime.utcnow()
+        diff = utc_now - pub_dt
+        return diff.total_seconds() / 3600
+    except Exception:
+        return 0.0
+
 def fetch_rss(url: str, max_items: int = 15) -> list:
-    """Generic RSS fetcher — returns only news headlines with valid pubDate."""
+    """
+    Fetch RSS feed. Returns items with title, link, pub_dt, age_hours.
+    Rejects homepage/category/factcheck links automatically.
+    """
     try:
         req = urllib.request.Request(url, headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/rss+xml, application/xml, text/xml, */*",
         })
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            root  = ET.fromstring(resp.read())
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            raw  = resp.read()
+            root = ET.fromstring(raw)
             items = []
-            for item in root.findall(".//item")[:max_items * 3]:
+            for item in root.findall(".//item"):
                 t   = item.find("title")
                 l   = item.find("link")
                 pub = item.find("pubDate")
-                if t is None or not t.text:
+                if t is None or not t.text or not t.text.strip():
                     continue
                 title = t.text.strip()
-                link  = (l.text or "").strip() if l is not None else ""
-                # --- Filter: skip homepage/category links ---
-                # A real news link has a path with slug/id, not just domain or category
-                if link:
-                    path = link.split("://")[-1].replace("www.","")
-                    path_parts = [p for p in path.split("/") if p]
-                    # Skip if link is just homepage (0-1 path parts = category/homepage)
-                    if len(path_parts) <= 1:
-                        continue
-                    # Skip if path looks like a category only (e.g. /entertainment, /online)
-                    if len(path_parts) == 2 and len(path_parts[-1]) < 20 and not any(c.isdigit() for c in path_parts[-1]):
-                        continue
-                # --- Parse publish time ---
-                pub_dt = None
-                if pub is not None and pub.text:
-                    for fmt in [
-                        "%a, %d %b %Y %H:%M:%S %z",
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                        "%Y-%m-%dT%H:%M:%S%z",
-                        "%Y-%m-%dT%H:%M:%SZ",
-                    ]:
-                        try:
-                            pub_dt = datetime.strptime(pub.text.strip()[:31], fmt)
-                            break
-                        except Exception:
-                            continue
+                # Clean Google News redirect titles (remove " - Source" suffix)
+                title = re.sub(r'\s+[-–]\s+\S+$', '', title).strip()
+                link  = ""
+                if l is not None and l.text:
+                    link = l.text.strip()
+                elif l is not None:
+                    # Some RSS use <link> as CDATA after tag
+                    link = (l.tail or "").strip()
+                # Validate link
+                if not _is_valid_news_link(link, title):
+                    continue
+                pub_dt    = _parse_pubdate(pub.text if pub is not None else None)
+                age_hours = _hours_ago(pub_dt)
                 items.append({
-                    "title":  title,
-                    "link":   link,
-                    "pub_dt": pub_dt,
-                    "source": "",
+                    "title":     title,
+                    "link":      link,
+                    "pub_dt":    pub_dt,
+                    "age_hours": age_hours,
                 })
                 if len(items) >= max_items:
                     break
@@ -463,23 +542,18 @@ def fetch_rss(url: str, max_items: int = 15) -> list:
         return []
 
 def filter_recent(items: list, hours: int = 6) -> list:
-    """Keep only items published within the last N hours."""
-    cutoff = datetime.now(tz=None)
+    """
+    Keep only items published within the last N hours (UTC).
+    Items with no date info are EXCLUDED (strict mode for coverage tab).
+    """
     result = []
     for item in items:
         pub_dt = item.get("pub_dt")
+        age    = item.get("age_hours", 0)
+        # Strict: must have pubDate AND be within window
         if pub_dt is None:
-            # No date info — include it (better than missing real news)
-            result.append(item)
-            continue
-        # Make timezone-naive for comparison
-        try:
-            if pub_dt.tzinfo is not None:
-                pub_dt = pub_dt.replace(tzinfo=None) + timedelta(hours=6)  # UTC→BDT approx
-        except Exception:
-            pass
-        age_hours = (cutoff - pub_dt).total_seconds() / 3600
-        if age_hours <= hours:
+            continue   # ← strict: skip undated items
+        if age <= hours:
             result.append(item)
     return result
 

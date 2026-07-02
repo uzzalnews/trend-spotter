@@ -409,7 +409,7 @@ ALL_60_SOURCES = BD_SOURCES + INT_SOURCES  # total: 60
 
 @st.cache_data(ttl=120, show_spinner=False)
 def fetch_rss(url: str, max_items: int = 15) -> list:
-    """Generic RSS fetcher used for coverage comparison."""
+    """Generic RSS fetcher — returns only news headlines with valid pubDate."""
     try:
         req = urllib.request.Request(url, headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -417,19 +417,71 @@ def fetch_rss(url: str, max_items: int = 15) -> list:
         with urllib.request.urlopen(req, timeout=10) as resp:
             root  = ET.fromstring(resp.read())
             items = []
-            for item in root.findall(".//item")[:max_items]:
-                t = item.find("title")
-                l = item.find("link")
-                s = item.find("source")
-                if t is not None and t.text:
-                    items.append({
-                        "title":  t.text.strip(),
-                        "link":   (l.text or "").strip() if l is not None else "",
-                        "source": (s.text or "").strip() if s is not None else "",
-                    })
+            for item in root.findall(".//item")[:max_items * 3]:
+                t   = item.find("title")
+                l   = item.find("link")
+                pub = item.find("pubDate")
+                if t is None or not t.text:
+                    continue
+                title = t.text.strip()
+                link  = (l.text or "").strip() if l is not None else ""
+                # --- Filter: skip homepage/category links ---
+                # A real news link has a path with slug/id, not just domain or category
+                if link:
+                    path = link.split("://")[-1].replace("www.","")
+                    path_parts = [p for p in path.split("/") if p]
+                    # Skip if link is just homepage (0-1 path parts = category/homepage)
+                    if len(path_parts) <= 1:
+                        continue
+                    # Skip if path looks like a category only (e.g. /entertainment, /online)
+                    if len(path_parts) == 2 and len(path_parts[-1]) < 20 and not any(c.isdigit() for c in path_parts[-1]):
+                        continue
+                # --- Parse publish time ---
+                pub_dt = None
+                if pub is not None and pub.text:
+                    for fmt in [
+                        "%a, %d %b %Y %H:%M:%S %z",
+                        "%a, %d %b %Y %H:%M:%S %Z",
+                        "%Y-%m-%dT%H:%M:%S%z",
+                        "%Y-%m-%dT%H:%M:%SZ",
+                    ]:
+                        try:
+                            pub_dt = datetime.strptime(pub.text.strip()[:31], fmt)
+                            break
+                        except Exception:
+                            continue
+                items.append({
+                    "title":  title,
+                    "link":   link,
+                    "pub_dt": pub_dt,
+                    "source": "",
+                })
+                if len(items) >= max_items:
+                    break
             return items
     except Exception:
         return []
+
+def filter_recent(items: list, hours: int = 6) -> list:
+    """Keep only items published within the last N hours."""
+    cutoff = datetime.now(tz=None)
+    result = []
+    for item in items:
+        pub_dt = item.get("pub_dt")
+        if pub_dt is None:
+            # No date info — include it (better than missing real news)
+            result.append(item)
+            continue
+        # Make timezone-naive for comparison
+        try:
+            if pub_dt.tzinfo is not None:
+                pub_dt = pub_dt.replace(tzinfo=None) + timedelta(hours=6)  # UTC→BDT approx
+        except Exception:
+            pass
+        age_hours = (cutoff - pub_dt).total_seconds() / 3600
+        if age_hours <= hours:
+            result.append(item)
+    return result
 
 # ═════════════════════════════════════════════════════
 #  DATA FETCHING
@@ -1691,45 +1743,79 @@ with tab_content:
 with tab_coverage:
 
     # ════════════════════════════════════════════════════════════
-    #  PROTHOM ALO vs 59 SOURCES — REAL-TIME HEADLINE COMPARISON
+    #  PROTHOM ALO vs 59 SOURCES — LAST 6 HOURS HEADLINES
     # ════════════════════════════════════════════════════════════
 
+    st.markdown(f"""
+<div style="background:white;border:1px solid #E8E4DC;border-radius:14px;
+  padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;
+  justify-content:space-between;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,.04)">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="width:36px;height:36px;border-radius:9px;background:#C8102E;
+      display:flex;align-items:center;justify-content:center;font-size:16px">🔍</div>
+    <div>
+      <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;font-size:14px;color:#1A1A1A">
+        প্রথম আলো বনাম ৫৯টি সোর্স — শেষ ৬ ঘণ্টার নিউজ তুলনা
+      </div>
+      <div style="font-size:11px;color:#888;margin-top:2px">
+        🇧🇩 ২৯টি বাংলাদেশি + 🌍 ৩০টি আন্তর্জাতিক সোর্স · শুধুমাত্র আজকের সংবাদ
+      </div>
+    </div>
+  </div>
+  <div style="text-align:right;flex-shrink:0">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#C8102E;font-weight:700">
+      ⏱ শেষ ৬ ঘণ্টা
+    </div>
+    <div style="font-size:10px;color:#aaa;margin-top:1px">{datetime.now().strftime('%d %b %Y · %H:%M')} BDT</div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
     # --- Helper: fetch with multiple fallback methods ---
-    @st.cache_data(ttl=180, show_spinner=False)
-    def smart_fetch(rss_url: str, web_url: str, max_items: int = 8) -> list:
-        """Try multiple strategies to get headlines."""
-        # Strategy 1: Direct RSS
-        items = fetch_rss(rss_url, max_items)
+    @st.cache_data(ttl=90, show_spinner=False)
+    def smart_fetch(rss_url: str, web_url: str, max_items: int = 8, hours: int = 6) -> list:
+        """Try multiple strategies to get RECENT headlines (last N hours)."""
+        # Strategy 1: Direct RSS → filter recent
+        raw = fetch_rss(rss_url, max_items * 3)
+        items = filter_recent(raw, hours)
         if items:
-            return items
-        # Strategy 2: Google News RSS for this domain
+            return items[:max_items]
+        # Fallback: unfiltered if all items are old or no date (still filter homepage links)
+        if raw:
+            return raw[:max_items]
+        # Strategy 2: Google News site: search
         try:
             domain = web_url.replace("https://","").replace("http://","").split("/")[0]
-            gn_url = f"https://news.google.com/rss/search?q=site:{domain}&hl=bn&gl=BD&ceid=BD:bn"
-            items  = fetch_rss(gn_url, max_items)
-            if items:
-                return items
+            gn_url = f"https://news.google.com/rss/search?q=site:{domain}&hl=bn&gl=BD&ceid=BD:bn&tbs=qdr:h6"
+            raw2   = fetch_rss(gn_url, max_items * 2)
+            items2 = filter_recent(raw2, hours)
+            if items2:
+                return items2[:max_items]
+            if raw2:
+                return raw2[:max_items]
         except Exception:
             pass
         return []
 
-    @st.cache_data(ttl=180, show_spinner=False)
+    @st.cache_data(ttl=90, show_spinner=False)
     def fetch_prothomalo(max_items: int = 30) -> list:
-        """Fetch Prothom Alo headlines (multiple RSS endpoints)."""
+        """Fetch Prothom Alo RECENT headlines (last 6 hours)."""
         pa_urls = [
             "https://www.prothomalo.com/feed/",
             "https://www.prothomalo.com/rss.xml",
-            "https://news.google.com/rss/search?q=site:prothomalo.com&hl=bn&gl=BD&ceid=BD:bn",
+            "https://news.google.com/rss/search?q=site:prothomalo.com&hl=bn&gl=BD&ceid=BD:bn&tbs=qdr:h6",
         ]
         for url in pa_urls:
-            items = fetch_rss(url, max_items)
+            raw   = fetch_rss(url, max_items * 2)
+            items = filter_recent(raw, 6)
             if items:
-                return items
+                return items[:max_items]
+            if raw:   # fallback if no date info
+                return raw[:max_items]
         return []
 
-    @st.cache_data(ttl=180, show_spinner=False)
+    @st.cache_data(ttl=90, show_spinner=False)
     def fetch_all_other_sources(max_per: int = 6) -> dict:
-        """Fetch from all 59 sources (BD without PA + all INT)."""
+        """Fetch RECENT (last 6h) headlines from all 59 sources (BD without PA + all INT)."""
         OTHER_SOURCES = [s for s in BD_SOURCES if s[0] != "prothomalo"] + INT_SOURCES
         result = {}
         for src in OTHER_SOURCES:
@@ -1737,7 +1823,9 @@ with tab_coverage:
             sname = src[1]
             srss  = src[2]
             surl  = src[3] if len(src) > 3 else ""
-            items = smart_fetch(srss, surl, max_per)
+            items = smart_fetch(srss, surl, max_per, hours=6)
+            # Only keep items with actual article links (not homepage)
+            items = [i for i in items if i.get("link","").count("/") >= 3]
             result[sid] = {
                 "name":      sname,
                 "url":       surl,

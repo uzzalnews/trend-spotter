@@ -559,17 +559,16 @@ def fetch_rss(url: str, max_items: int = 15) -> list:
 
 def filter_recent(items: list, hours: int = 6) -> list:
     """
-    Keep only items published within the last N hours (UTC).
-    Items with no date info are EXCLUDED (strict mode for coverage tab).
+    Keep only items published within the last N hours.
+    age_hours is calculated in UTC by _hours_ago().
+    Items with no pubDate are EXCLUDED (strict mode).
     """
     result = []
     for item in items:
-        pub_dt = item.get("pub_dt")
-        age    = item.get("age_hours", 0)
-        # Strict: must have pubDate AND be within window
-        if pub_dt is None:
-            continue   # ← strict: skip undated items
-        if age <= hours:
+        age = item.get("age_hours")
+        if age is None:
+            continue   # strict: skip undated items
+        if 0 <= age <= hours:
             result.append(item)
     return result
 
@@ -1103,7 +1102,7 @@ with st.sidebar:
 bn_days   = ["সোমবার","মঙ্গলবার","বুধবার","বৃহস্পতিবার","শুক্রবার","শনিবার","রোববার"]
 bn_months = ["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন",
              "জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"]
-now     = datetime.now()
+now     = datetime.utcnow() + timedelta(hours=6)  # BDT = UTC+6
 bd_date = f"{bn_days[now.weekday()]}, {now.day} {bn_months[now.month-1]} {now.year}"
 bd_time = now.strftime("%H:%M BDT")
 
@@ -1315,7 +1314,7 @@ with tab_google:
         st.dataframe(df_gt, use_container_width=True, hide_index=True, height=280)
         st.download_button("⬇ Google Trends CSV",
             data=df_gt.to_csv(index=False, encoding="utf-8-sig"),
-            file_name=f"google_trends_bd_{now.strftime('%Y%m%d_%H%M')}.csv",
+            file_name=f"google_trends_bd_{(datetime.utcnow()+timedelta(hours=6)).strftime('%Y%m%d_%H%M')}.csv",
             mime="text/csv", use_container_width=True)
 
 
@@ -1386,7 +1385,7 @@ with tab_yt:
             st.dataframe(df_yt_full, use_container_width=True, hide_index=True)
             st.download_button("⬇ YouTube Trends CSV",
                 data=df_yt_full.to_csv(index=False, encoding="utf-8-sig"),
-                file_name=f"youtube_trends_bd_{now.strftime('%Y%m%d_%H%M')}.csv",
+                file_name=f"youtube_trends_bd_{(datetime.utcnow()+timedelta(hours=6)).strftime('%Y%m%d_%H%M')}.csv",
                 mime="text/csv", use_container_width=True)
 
 
@@ -1490,7 +1489,7 @@ with tab_fb:
             st.dataframe(df_fb_full, use_container_width=True, hide_index=True)
             st.download_button("⬇ Facebook Trends CSV",
                 data=df_fb_full.to_csv(index=False, encoding="utf-8-sig"),
-                file_name=f"facebook_trends_bd_{now.strftime('%Y%m%d_%H%M')}.csv",
+                file_name=f"facebook_trends_bd_{(datetime.utcnow()+timedelta(hours=6)).strftime('%Y%m%d_%H%M')}.csv",
                 mime="text/csv", use_container_width=True)
 
 
@@ -1807,7 +1806,7 @@ with tab_content:
         st.dataframe(df_comb, use_container_width=True, hide_index=True, height=300)
         st.download_button("⬇ সব ট্রেন্ড CSV",
             data=df_comb.to_csv(index=False, encoding="utf-8-sig"),
-            file_name=f"all_trends_bd_{now.strftime('%Y%m%d_%H%M')}.csv",
+            file_name=f"all_trends_bd_{(datetime.utcnow()+timedelta(hours=6)).strftime('%Y%m%d_%H%M')}.csv",
             mime="text/csv", use_container_width=True)
 
     with ce2:
@@ -1834,7 +1833,7 @@ with tab_content:
             st.markdown("</div></div>", unsafe_allow_html=True)
 
             dl1, dl2, dl3 = st.columns(3)
-            fname = f"newspulse_{topic[:18].replace(' ','_')}_{now.strftime('%Y%m%d_%H%M')}"
+            fname = f"newspulse_{topic[:18].replace(' ','_')}_{(datetime.utcnow()+timedelta(hours=6)).strftime('%Y%m%d_%H%M')}"
             with dl1:
                 st.download_button("⬇ TXT", data=out, file_name=fname+".txt", mime="text/plain", use_container_width=True)
             with dl2:
@@ -1906,7 +1905,7 @@ with tab_coverage:
   </div>
   <div style="text-align:right;flex-shrink:0">
     <div style="font-size:11px;font-weight:700;color:#C8102E;font-family:monospace">⏱ শেষ ৬ ঘণ্টা</div>
-    <div style="font-size:10px;color:#aaa;margin-top:1px">{datetime.now().strftime('%d %b %Y · %H:%M')} BDT</div>
+    <div style="font-size:10px;color:#aaa;margin-top:1px">{(datetime.utcnow() + timedelta(hours=6)).strftime('%d %b %Y · %H:%M')} BDT</div>
   </div>
 </div>""", unsafe_allow_html=True)
 
@@ -2063,46 +2062,84 @@ with tab_coverage:
 
     # ── Gap card renderer ────────────────────────────────────────
     def gap_card(g: dict, rank: int, tr: dict) -> str:
-        is_bd      = g["is_bd"]
-        is_prio    = g["is_priority"]
-        headline   = g["headline"]
-        bangla     = tr.get(headline, "")
-        lk         = g.get("link","")
-        src_name   = g["source"]
+        is_bd    = g.get("is_bd", True)
+        is_prio  = g.get("is_priority", False)
+        headline = g.get("headline", "")
+        bangla   = tr.get(headline, "")
+        lk       = g.get("link", "")
+        src_name = g.get("source", "")
 
-        # Badge colours
+        # Colors
         if is_prio:
-            bg="#eff6ff"; col="#1d4ed8"; brd="#bfdbfe"; flag="🌍"; badge_lbl="PRIORITY INT"
+            border_col = "#1d4ed8"
+            src_bg = "#eff6ff"; src_col = "#1d4ed8"; src_brd = "#bfdbfe"; flag = "🌍"
+            prio_label = '<div style="font-size:9px;font-weight:800;color:#1d4ed8;font-family:monospace;margin-bottom:6px;letter-spacing:1.5px">⭐ PRIORITY SOURCE</div>'
         elif not is_bd:
-            bg="#f0fdf4"; col="#15803d"; brd="#86efac"; flag="🌍"; badge_lbl="INT"
+            border_col = "#15803d"
+            src_bg = "#f0fdf4"; src_col = "#15803d"; src_brd = "#86efac"; flag = "🌍"
+            prio_label = ""
         else:
-            bg="#fff7ed"; col="#c2410c"; brd="#fdba74"; flag="🇧🇩"; badge_lbl="BD"
+            border_col = "#C8102E"
+            src_bg = "#fff7ed"; src_col = "#c2410c"; src_brd = "#fdba74"; flag = "🇧🇩"
+            prio_label = ""
 
-        prio_bar = '<div style="font-size:9px;font-weight:700;color:#1d4ed8;font-family:monospace;margin-bottom:4px;letter-spacing:1px">⭐ PRIORITY SOURCE</div>' if is_prio else ""
-        bangla_block = f'<div style="font-family:\'Noto Serif Bengali\',serif;font-size:13px;color:#555;line-height:1.4;margin-top:5px;padding:6px 10px;background:#f8f9ff;border-radius:6px">🔤 {bangla}</div>' if bangla else ""
-        link_btn = f'<a href="{lk}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#C8102E;text-decoration:none;border:1px solid #fca5a5;padding:3px 11px;border-radius:100px;background:#fff5f5;margin-top:8px">🔗 পড়ুন</a>' if lk else ""
+        # Bangla translation block
+        if bangla:
+            bn_block = (
+                '<div style="font-family:Noto Serif Bengali,serif;font-size:13px;'
+                'color:#1565c0;line-height:1.5;margin-top:6px;padding:7px 11px;'
+                'background:#f0f7ff;border-radius:8px;border-left:3px solid #90caf9">'
+                '🔤 ' + bangla + '</div>'
+            )
+        else:
+            bn_block = ""
 
-        return f"""
-<div style="background:white;border:1px solid #E8E4DC;
-  border-left:4px solid {'#1d4ed8' if is_prio else '#C8102E'};
-  border-radius:0 12px 12px 0;padding:13px 16px;margin-bottom:9px">
-  {prio_bar}
-  <div style="display:flex;align-items:flex-start;gap:10px">
-    <span style="font-size:12px;font-weight:700;color:#bbb;font-family:monospace;min-width:26px;flex-shrink:0;margin-top:2px">#{rank}</span>
-    <div style="flex:1;min-width:0">
-      <div style="font-family:'Noto Serif Bengali',serif;font-size:14px;font-weight:700;
-        color:#1A1A1A;line-height:1.5">{headline}</div>
-      {bangla_block}
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px">
-        <span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px;
-          background:{bg};color:{col};border:1px solid {brd}">{flag} {src_name}</span>
-        <span style="font-size:10px;color:#aaa">প্রথম আলো ❌ নেই</span>
-        {link_btn}
-      </div>
-    </div>
-  </div>
-</div>"""
+        # Read link button
+        if lk:
+            link_btn = (
+                '<a href="' + lk + '" target="_blank" '
+                'style="display:inline-flex;align-items:center;gap:4px;'
+                'font-size:11px;font-weight:700;color:#C8102E;text-decoration:none;'
+                'border:1px solid #fca5a5;padding:4px 12px;border-radius:100px;'
+                'background:#fff5f5;margin-top:8px;white-space:nowrap">🔗 পড়ুন</a>'
+            )
+        else:
+            link_btn = ""
 
+        rank_str = (
+            '<span style="font-size:11px;font-weight:700;color:#bbb;'
+            'font-family:monospace;min-width:26px;flex-shrink:0;margin-top:3px">'
+            '#' + str(rank) + '</span>'
+        ) if rank else ""
+
+        src_badge = (
+            '<span style="font-size:10px;font-weight:700;padding:2px 10px;'
+            'border-radius:100px;background:' + src_bg + ';color:' + src_col + ';'
+            'border:1px solid ' + src_brd + '">' + flag + ' ' + src_name + '</span>'
+        )
+
+        pa_badge = '<span style="font-size:10px;color:#aaa">প্রথম আলো ❌</span>'
+
+        card = (
+            '<div style="background:white;border:1px solid #E8E4DC;'
+            'border-left:4px solid ' + border_col + ';'
+            'border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:10px">'
+            + prio_label +
+            '<div style="display:flex;align-items:flex-start;gap:10px">'
+            + rank_str +
+            '<div style="flex:1;min-width:0">'
+            '<div style="font-family:Noto Serif Bengali,serif;font-size:14.5px;'
+            'font-weight:700;color:#1A1A1A;line-height:1.55;margin-bottom:6px">'
+            + headline + '</div>'
+            + bn_block +
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px">'
+            + src_badge + ' ' + pa_badge + ' ' + link_btn +
+            '</div>'
+            '</div>'
+            '</div>'
+            '</div>'
+        )
+        return card
     # ── Gap Alert banner ────────────────────────────────────────
     if not pa_items:
         st.error("⚠ প্রথম আলোর RSS ফিড এই মুহূর্তে পাওয়া যাচ্ছে না।")
@@ -2364,7 +2401,7 @@ with tab_stats:
     st.download_button(
         "⬇ সম্পূর্ণ ডেটাসেট ডাউনলোড করুন (সব প্ল্যাটফর্ম CSV)",
         data=pd.DataFrame(all_export).to_csv(index=False, encoding="utf-8-sig"),
-        file_name=f"newspulse_full_export_{now.strftime('%Y%m%d_%H%M')}.csv",
+        file_name=f"newspulse_full_export_{(datetime.utcnow()+timedelta(hours=6)).strftime('%Y%m%d_%H%M')}.csv",
         mime="text/csv", use_container_width=True
     )
 

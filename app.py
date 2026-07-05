@@ -1033,20 +1033,57 @@ all_topics = list(dict.fromkeys(
 #  SIDEBAR
 # ═════════════════════════════════════════════════════
 with st.sidebar:
+    # ── Logo ────────────────────────────────────────────────
     st.markdown("""
     <div style="padding:14px 0 8px">
       <div style="font-family:'Noto Serif Bengali',serif;font-size:22px;font-weight:800;color:#C8102E">🗞️ NewsPulse AI</div>
       <div style="font-size:11px;color:#888;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px">v5.0 · Bangladesh</div>
     </div>
     """, unsafe_allow_html=True)
-    st.divider()
 
-    st.markdown("#### 🔑 Gemini API Key")
-    api_key = st.text_input("", type="password", placeholder="AIza••••••••••••",
-                            help="aistudio.google.com থেকে বিনামূল্যে নিন",
-                            label_visibility="collapsed")
+    # ── Gemini API Key — PROMINENT BOX ──────────────────────
+    st.markdown("""
+<div style="background:linear-gradient(135deg,#fff5f6,#fff0f0);
+  border:2px solid #C8102E;border-radius:12px;padding:14px 16px;margin:8px 0 14px">
+  <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;font-size:14px;
+    color:#C8102E;margin-bottom:8px">🔑 Gemini API Key</div>
+  <div style="font-size:11px;color:#666;margin-bottom:10px;line-height:1.5">
+    AI বিশ্লেষণ, অনুবাদ ও হেডলাইন জেনারেটর ব্যবহার করতে এখানে key দিন।
+    <br><a href="https://aistudio.google.com" target="_blank"
+    style="color:#C8102E;font-weight:700;text-decoration:none">
+    ✨ aistudio.google.com থেকে বিনামূল্যে নিন →</a>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    api_key = st.text_input(
+        "Gemini API Key লিখুন",
+        type="password",
+        placeholder="AIzaSy••••••••••••••••••••••••••••",
+        help="Google AI Studio থেকে বিনামূল্যে পাওয়া যায়",
+        key="gemini_api_key_input"
+    )
+
     if api_key:
-        st.markdown('<div style="font-size:11px;color:#16a34a;font-weight:600">✅ API Key সংযুক্ত</div>', unsafe_allow_html=True)
+        st.markdown("""
+<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;
+  padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+  <span style="font-size:16px">✅</span>
+  <div>
+    <div style="font-size:12px;font-weight:700;color:#16a34a">API Key সংযুক্ত!</div>
+    <div style="font-size:10px;color:#888">AI সব ফিচার এখন সক্রিয়</div>
+  </div>
+</div>""", unsafe_allow_html=True)
+    else:
+        st.markdown("""
+<div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:8px;
+  padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+  <span style="font-size:16px">⚠️</span>
+  <div>
+    <div style="font-size:12px;font-weight:700;color:#d97706">Key দেওয়া হয়নি</div>
+    <div style="font-size:10px;color:#888">AI ফিচার নিষ্ক্রিয় আছে</div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
     st.divider()
 
     st.markdown("#### ✏️ কনটেন্ট সেটিং")
@@ -1181,6 +1218,32 @@ st.write("")
 # ═════════════════════════════════════════════════════
 #  MAIN TABS
 # ═════════════════════════════════════════════════════
+# ── API Key notice (top of page) ─────────────────────────
+if not api_key:
+    st.markdown("""
+<div style="background:linear-gradient(135deg,#fff9f0,#fff5f0);
+  border:2px solid #fb923c;border-radius:12px;padding:14px 20px;
+  margin-bottom:16px;display:flex;align-items:center;gap:16px">
+  <div style="font-size:32px;flex-shrink:0">🔑</div>
+  <div style="flex:1">
+    <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;
+      font-size:15px;color:#ea580c;margin-bottom:4px">
+      Gemini API Key দিন — AI ফিচার সক্রিয় করুন
+    </div>
+    <div style="font-size:12px;color:#666;line-height:1.6">
+      <b>বাম পাশের সাইডবারে</b> (← সাইডবার) API Key বক্সে আপনার Key লিখুন।
+      বিনামূল্যে পেতে যান:
+      <a href="https://aistudio.google.com" target="_blank"
+      style="color:#C8102E;font-weight:700;text-decoration:none">
+      aistudio.google.com →</a>
+    </div>
+  </div>
+  <div style="background:#C8102E;color:white;border-radius:8px;
+    padding:6px 14px;font-size:12px;font-weight:700;flex-shrink:0;text-align:center">
+    ← সাইডবার<br>দেখুন
+  </div>
+</div>""", unsafe_allow_html=True)
+
 (tab_news, tab_google, tab_yt, tab_fb,
  tab_ai, tab_aqi_tab, tab_content, tab_coverage, tab_stats) = st.tabs([
     "📰 সংবাদ ফিড",

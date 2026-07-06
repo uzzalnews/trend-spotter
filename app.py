@@ -30,7 +30,7 @@ st.set_page_config(
     page_title="NewsPulse AI · Bangladesh",
     layout="wide",
     page_icon="🗞️",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ═════════════════════════════════════════════════════
@@ -1055,35 +1055,8 @@ with st.sidebar:
   </div>
 </div>""", unsafe_allow_html=True)
 
-    api_key = st.text_input(
-        "Gemini API Key লিখুন",
-        type="password",
-        placeholder="AIzaSy••••••••••••••••••••••••••••",
-        help="Google AI Studio থেকে বিনামূল্যে পাওয়া যায়",
-        key="gemini_api_key_input"
-    )
-
-    if api_key:
-        st.markdown("""
-<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;
-  padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
-  <span style="font-size:16px">✅</span>
-  <div>
-    <div style="font-size:12px;font-weight:700;color:#16a34a">API Key সংযুক্ত!</div>
-    <div style="font-size:10px;color:#888">AI সব ফিচার এখন সক্রিয়</div>
-  </div>
-</div>""", unsafe_allow_html=True)
-    else:
-        st.markdown("""
-<div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:8px;
-  padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
-  <span style="font-size:16px">⚠️</span>
-  <div>
-    <div style="font-size:12px;font-weight:700;color:#d97706">Key দেওয়া হয়নি</div>
-    <div style="font-size:10px;color:#888">AI ফিচার নিষ্ক্রিয় আছে</div>
-  </div>
-</div>""", unsafe_allow_html=True)
-
+    # API Key managed from main page input
+    api_key = st.session_state.get("gemini_api_key", "")
     st.divider()
 
     st.markdown("#### ✏️ কনটেন্ট সেটিং")
@@ -1218,34 +1191,9 @@ st.write("")
 # ═════════════════════════════════════════════════════
 #  MAIN TABS
 # ═════════════════════════════════════════════════════
-# ── API Key notice (top of page) ─────────────────────────
-if not api_key:
-    st.markdown("""
-<div style="background:linear-gradient(135deg,#fff9f0,#fff5f0);
-  border:2px solid #fb923c;border-radius:12px;padding:14px 20px;
-  margin-bottom:16px;display:flex;align-items:center;gap:16px">
-  <div style="font-size:32px;flex-shrink:0">🔑</div>
-  <div style="flex:1">
-    <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;
-      font-size:15px;color:#ea580c;margin-bottom:4px">
-      Gemini API Key দিন — AI ফিচার সক্রিয় করুন
-    </div>
-    <div style="font-size:12px;color:#666;line-height:1.6">
-      <b>বাম পাশের সাইডবারে</b> (← সাইডবার) API Key বক্সে আপনার Key লিখুন।
-      বিনামূল্যে পেতে যান:
-      <a href="https://aistudio.google.com" target="_blank"
-      style="color:#C8102E;font-weight:700;text-decoration:none">
-      aistudio.google.com →</a>
-    </div>
-  </div>
-  <div style="background:#C8102E;color:white;border-radius:8px;
-    padding:6px 14px;font-size:12px;font-weight:700;flex-shrink:0;text-align:center">
-    ← সাইডবার<br>দেখুন
-  </div>
-</div>""", unsafe_allow_html=True)
 
 (tab_news, tab_google, tab_yt, tab_fb,
- tab_ai, tab_aqi_tab, tab_content, tab_coverage, tab_stats) = st.tabs([
+ tab_ai, tab_aqi_tab, tab_content, tab_coverage, tab_reader, tab_stats) = st.tabs([
     "📰 সংবাদ ফিড",
     "🔍 Google Trends",
     "▶️ YouTube Trends",
@@ -1254,6 +1202,7 @@ if not api_key:
     "💨 বায়ু ও আবহাওয়া",
     "✍️ কনটেন্ট ইঞ্জিন",
     "🔍 কভারেজ তুলনা",
+    "📡 নিউজ রিডার",
     "📊 অ্যানালিটিক্স",
 ])
 
@@ -2181,6 +2130,12 @@ with tab_coverage:
             'border:1px solid ' + src_brd + '">' + flag + ' ' + src_name + '</span>'
         )
 
+        # Time display
+        pub_dt = g.get("pub_dt")
+        t_ago  = time_ago_bn(pub_dt) if pub_dt else ""
+        time_badge = (
+            '<span style="font-size:10px;color:#aaa;font-family:monospace">⏱ ' + t_ago + '</span>'
+        ) if t_ago else ""
         pa_badge = '<span style="font-size:10px;color:#aaa">প্রথম আলো ❌</span>'
 
         card = (
@@ -2196,7 +2151,7 @@ with tab_coverage:
             + headline + '</div>'
             + bn_block +
             '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px">'
-            + src_badge + ' ' + pa_badge + ' ' + link_btn +
+            + src_badge + ' ' + pa_badge + ' ' + time_badge + ' ' + link_btn +
             '</div>'
             '</div>'
             '</div>'
@@ -2354,6 +2309,221 @@ with tab_coverage:
 </div>""", unsafe_allow_html=True)
     else:
         st.warning("প্রথম আলোর হেডলাইন লোড হয়নি")
+
+
+
+# ══════════════════════════════════════════
+#  TAB 9 — নিউজ রিডার (60 sources, checkbox, auto-refresh)
+# ══════════════════════════════════════════
+with tab_reader:
+
+    # Auto-refresh every 5 minutes using meta tag
+    st.markdown("""
+<meta http-equiv="refresh" content="300">
+<style>
+.reader-frame{height:480px;overflow-y:auto;border:1.5px solid #E8E4DC;
+  border-radius:12px;background:white;padding:12px;margin-bottom:14px;}
+.reader-card{background:white;border:1px solid #E8E4DC;border-radius:10px;
+  padding:11px 13px;margin-bottom:8px;border-left:3px solid #C8102E;
+  transition:box-shadow .15s;}
+.reader-card:hover{box-shadow:0 2px 12px rgba(200,16,46,.12);}
+.reader-card-title{font-family:'Noto Serif Bengali',serif;font-size:13px;
+  font-weight:700;color:#1A1A1A;line-height:1.45;margin-bottom:5px;}
+.reader-card-meta{font-size:10px;color:#aaa;display:flex;align-items:center;
+  gap:6px;flex-wrap:wrap;}
+.reader-src-badge{font-size:10px;font-weight:700;padding:1px 7px;
+  border-radius:100px;background:#fef2f2;color:#C8102E;border:1px solid #fca5a5;}
+.reader-src-badge.intl{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;}
+</style>""", unsafe_allow_html=True)
+
+    st.markdown(f"""
+<div style="background:white;border:1px solid #E8E4DC;border-radius:14px;
+  padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;
+  justify-content:space-between">
+  <div>
+    <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;
+      font-size:16px;color:#1A1A1A">📡 নিউজ রিডার — ৬০টি সোর্স</div>
+    <div style="font-size:11px;color:#888;margin-top:2px">
+      সোর্স বেছে নিন → ফ্রেমে সর্বশেষ ৫০টি নিউজ দেখুন · প্রতি ৫ মিনিটে auto-refresh
+    </div>
+  </div>
+  <div style="text-align:right;flex-shrink:0">
+    <div style="font-size:11px;font-weight:700;color:#C8102E;font-family:monospace">
+      ⏱ {(datetime.utcnow()+timedelta(hours=6)).strftime("%H:%M BDT")}
+    </div>
+    <div style="font-size:10px;color:#aaa">{(datetime.utcnow()+timedelta(hours=6)).strftime("%d %b %Y")}</div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    # ── Source Selector ─────────────────────────────────────
+    st.markdown('<div class="np-sec"><div class="np-sec-title">📋 সোর্স নির্বাচন করুন</div></div>',
+                unsafe_allow_html=True)
+
+    # Quick-select buttons
+    qc1,qc2,qc3,qc4,qc5 = st.columns(5)
+    with qc1:
+        if st.button("✅ সব BD", key="rd_all_bd", use_container_width=True):
+            for s in BD_SOURCES:
+                st.session_state[f"rd_{s[0]}"] = True
+    with qc2:
+        if st.button("✅ সব INT", key="rd_all_int", use_container_width=True):
+            for s in INT_SOURCES:
+                st.session_state[f"rd_{s[0]}"] = True
+    with qc3:
+        if st.button("⭐ Priority INT", key="rd_prio", use_container_width=True):
+            for s in INT_SOURCES:
+                st.session_state[f"rd_{s[0]}"] = s[0] in PRIORITY_INT_SOURCES
+    with qc4:
+        if st.button("✅ সব ৬০টি", key="rd_all60", use_container_width=True):
+            for s in BD_SOURCES + INT_SOURCES:
+                st.session_state[f"rd_{s[0]}"] = True
+    with qc5:
+        if st.button("❌ সব বাদ", key="rd_none", use_container_width=True):
+            for s in BD_SOURCES + INT_SOURCES:
+                st.session_state[f"rd_{s[0]}"] = False
+
+    st.write("")
+
+    # ── BD Sources checkboxes ────────────────────────────────
+    with st.expander("🇧🇩 বাংলাদেশি সোর্স (৩০টি) — ক্লিক করে খুলুন", expanded=True):
+        bd_cols = st.columns(5)
+        for i, src in enumerate(BD_SOURCES):
+            with bd_cols[i % 5]:
+                st.checkbox(
+                    src[1],
+                    value=st.session_state.get(f"rd_{src[0]}", True),
+                    key=f"rd_{src[0]}"
+                )
+
+    # ── INT Sources checkboxes ───────────────────────────────
+    with st.expander("🌍 আন্তর্জাতিক সোর্স (৩০টি) — ক্লিক করে খুলুন", expanded=False):
+        int_cols = st.columns(5)
+        for i, src in enumerate(INT_SOURCES):
+            with int_cols[i % 5]:
+                is_prio = src[0] in PRIORITY_INT_SOURCES
+                st.checkbox(
+                    ("⭐ " if is_prio else "") + src[1],
+                    value=st.session_state.get(f"rd_{src[0]}", is_prio),
+                    key=f"rd_{src[0]}"
+                )
+
+    # ── Fetch selected sources ───────────────────────────────
+    selected_bd  = [s for s in BD_SOURCES  if st.session_state.get(f"rd_{s[0]}", True)]
+    selected_int = [s for s in INT_SOURCES if st.session_state.get(f"rd_{s[0]}", s[0] in PRIORITY_INT_SOURCES)]
+    selected_all = selected_bd + selected_int
+
+    sel_count = len(selected_all)
+    st.markdown(f"""
+<div style="background:#f8f9fa;border:1px solid #E8E4DC;border-radius:8px;
+  padding:8px 14px;margin:10px 0;font-size:12px;color:#555;
+  display:flex;align-items:center;gap:10px">
+  <span>📊 নির্বাচিত: <b style="color:#C8102E">{sel_count}টি</b> সোর্স</span>
+  <span>🇧🇩 BD: <b>{len(selected_bd)}</b></span>
+  <span>🌍 INT: <b>{len(selected_int)}</b></span>
+  <span style="margin-left:auto;font-family:monospace;font-size:10px;color:#aaa">
+    ⏱ প্রতি ৫ মিনিটে auto-refresh
+  </span>
+</div>""", unsafe_allow_html=True)
+
+    if sel_count == 0:
+        st.warning("কোনো সোর্স নির্বাচন করা হয়নি।")
+    else:
+        # ── Fetch all selected sources ───────────────────────
+        @st.cache_data(ttl=300, show_spinner=False)
+        def fetch_reader_source(rss_url: str, web_url: str, src_id: str, max_items: int = 50) -> list:
+            """Fetch up to 50 latest articles from one source."""
+            raw = fetch_rss(rss_url, max_items)
+            # Sort by age (freshest first)
+            raw_with_dt = sorted(
+                [i for i in raw if i.get("pub_dt") is not None],
+                key=lambda x: x.get("age_hours", 9999)
+            )
+            # Add items without date at end
+            raw_no_dt = [i for i in raw if i.get("pub_dt") is None]
+            return (raw_with_dt + raw_no_dt)[:max_items]
+
+        # Fetch all selected in parallel via cache
+        all_reader_items = []
+        progress_bar = st.progress(0, text="সোর্স লোড হচ্ছে...")
+        for idx, src in enumerate(selected_all):
+            items = fetch_reader_source(src[2], src[3] if len(src)>3 else "", src[0], 50)
+            is_bd = src in BD_SOURCES
+            for item in items:
+                item["_source_name"] = src[1]
+                item["_source_id"]   = src[0]
+                item["_is_bd"]       = is_bd
+                item["_is_prio"]     = src[0] in PRIORITY_INT_SOURCES
+            all_reader_items.extend(items)
+            progress_bar.progress((idx+1)/sel_count, text=f"লোড হচ্ছে: {src[1]}...")
+        progress_bar.empty()
+
+        # Sort all items: freshest first
+        all_reader_items.sort(key=lambda x: x.get("age_hours", 9999))
+        # Keep latest 50 per frame (unlimited frames)
+        total_items = len(all_reader_items)
+
+        st.markdown(f"""
+<div style="font-size:12px;color:#888;margin-bottom:10px">
+  📰 মোট <b style="color:#C8102E">{total_items}টি</b> হেডলাইন পাওয়া গেছে
+  {sel_count}টি সোর্স থেকে ·
+  <span style="font-family:monospace">{(datetime.utcnow()+timedelta(hours=6)).strftime("%H:%M")} BDT</span>
+</div>""", unsafe_allow_html=True)
+
+        # ── Display in 5-column frames of 50 items each ─────
+        ITEMS_PER_FRAME = 50
+        COLS = 4   # 4 columns per frame
+
+        # Group into frames
+        frames = [all_reader_items[i:i+ITEMS_PER_FRAME]
+                  for i in range(0, len(all_reader_items), ITEMS_PER_FRAME)]
+
+        for frame_idx, frame_items in enumerate(frames):
+            frame_num = frame_idx + 1
+            st.markdown(f"""
+<div style="display:flex;align-items:center;gap:10px;margin:14px 0 8px">
+  <div style="height:2px;flex:1;background:#E8E4DC"></div>
+  <span style="font-size:11px;font-weight:700;color:#888;font-family:monospace;
+    background:#f8f9fa;padding:3px 10px;border-radius:100px;border:1px solid #E8E4DC">
+    📄 ফ্রেম #{frame_num} · {len(frame_items)}টি হেডলাইন
+  </span>
+  <div style="height:2px;flex:1;background:#E8E4DC"></div>
+</div>""", unsafe_allow_html=True)
+
+            # Build the scrollable frame HTML
+            cards_html = ""
+            for item in frame_items:
+                sname  = item.get("_source_name","")
+                is_bd  = item.get("_is_bd", True)
+                is_p   = item.get("_is_prio", False)
+                title  = item.get("title","")
+                lk     = item.get("link","")
+                t_ago  = time_ago_bn(item.get("pub_dt"))
+
+                badge_cls = "reader-src-badge" if is_bd else "reader-src-badge intl"
+                prio_star = "⭐ " if is_p else ("🇧🇩 " if is_bd else "🌍 ")
+                border_c  = "#1d4ed8" if is_p else ("#C8102E" if is_bd else "#16a34a")
+
+                link_open  = f'<a href="{lk}" target="_blank" style="text-decoration:none;">' if lk else ""
+                link_close = "</a>" if lk else ""
+                time_str   = f'<span style="font-family:monospace">⏱ {t_ago}</span>' if t_ago else ""
+
+                cards_html += f"""
+<div class="reader-card" style="border-left-color:{border_c}">
+  {link_open}
+  <div class="reader-card-title">{title}</div>
+  {link_close}
+  <div class="reader-card-meta">
+    <span class="{badge_cls}">{prio_star}{sname}</span>
+    {time_str}
+  </div>
+</div>"""
+
+            # Wrap in scrollable frame
+            st.markdown(f'<div class="reader-frame">{cards_html}</div>',
+                        unsafe_allow_html=True)
+
+        if not frames:
+            st.info("কোনো হেডলাইন পাওয়া যায়নি। রিফ্রেশ করুন।")
 
 
 with tab_stats:

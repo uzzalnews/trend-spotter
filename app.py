@@ -2340,228 +2340,226 @@ with tab_coverage:
 # ══════════════════════════════════════════
 with tab_reader:
 
-    # Auto-refresh every 5 minutes
-    st.markdown("""<meta http-equiv="refresh" content="300">
+    # ── CSS: card-based source frames ──────────────────────
+    st.markdown("""
+<meta http-equiv="refresh" content="300">
 <style>
-.rd-frame{height:480px;overflow-y:auto;border:2px solid #E8E4DC;border-radius:14px;
-  background:#FDFAF6;padding:10px;margin-bottom:16px;scroll-behavior:smooth;}
-.rd-card{display:flex;flex-direction:column;gap:4px;background:white;
-  border:1px solid #E8E4DC;border-left:3px solid #C8102E;border-radius:0 10px 10px 0;
-  padding:10px 13px;margin-bottom:7px;}
-.rd-card.intl{border-left-color:#1d4ed8;}
-.rd-card.prio{border-left-color:#f59e0b;border-width:1px 1px 1px 4px;}
-.rd-title{font-family:'Noto Serif Bengali',serif;font-size:13px;font-weight:700;
-  color:#1A1A1A;line-height:1.5;text-decoration:none;}
-.rd-title:hover{color:#C8102E;}
-.rd-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;}
-.rd-badge{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:100px;}
-.bd-badge{background:#fef2f2;color:#C8102E;border:1px solid #fca5a5;}
-.int-badge{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}
-.prio-badge{background:#fffbeb;color:#b45309;border:1px solid #fde68a;}
-.rd-time{font-size:9.5px;color:#aaa;font-family:monospace;}
-</style>""", unsafe_allow_html=True)
+/* Dark background for reader section */
+.rd-section{background:#0f1117;border-radius:18px;padding:22px;margin-top:4px;}
+.rd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px;}
 
-    # ── Header ─────────────────────────────────────────────
+/* Source card */
+.src-card{background:#1a1d2e;border:1px solid #2d3154;border-radius:14px;
+  overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.src-card-header{padding:12px 16px;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid #2d3154;}
+.src-card-name{font-size:13px;font-weight:800;letter-spacing:.5px;color:#fff;
+  font-family:'Noto Serif Bengali',serif;text-transform:uppercase;}
+.src-card-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;
+  font-family:monospace;letter-spacing:1px;}
+.src-card-live{background:#16a34a;color:#fff;}
+.src-card-off{background:#374151;color:#9ca3af;}
+
+/* Scrollable news list inside card */
+.src-card-body{height:320px;overflow-y:auto;padding:10px 12px;
+  scrollbar-width:thin;scrollbar-color:#2d3154 transparent;}
+.src-card-body::-webkit-scrollbar{width:4px;}
+.src-card-body::-webkit-scrollbar-thumb{background:#2d3154;border-radius:2px;}
+
+/* News item */
+.news-item{padding:8px 0;border-bottom:1px solid #232640;}
+.news-item:last-child{border-bottom:none;}
+.news-item-title{font-size:12px;font-weight:600;color:#e2e8f0;line-height:1.45;
+  display:block;text-decoration:none;font-family:'Noto Serif Bengali',serif;}
+.news-item-title:hover{color:#f87171;}
+.news-item-time{font-size:9.5px;color:#6b7280;font-family:monospace;
+  margin-top:3px;display:block;}
+.news-item-dot{display:inline-block;width:5px;height:5px;border-radius:50%;
+  margin-right:5px;vertical-align:middle;background:#C8102E;}
+
+/* Color accent per card */
+.bd-card .src-card-header{background:linear-gradient(135deg,#1e1030,#1a1d2e);
+  border-left:3px solid #C8102E;}
+.int-card .src-card-header{background:linear-gradient(135deg,#0c1a2e,#1a1d2e);
+  border-left:3px solid #3b82f6;}
+.prio-card .src-card-header{background:linear-gradient(135deg,#1c1600,#1a1d2e);
+  border-left:3px solid #f59e0b;}
+
+.rd-section-header{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:4px;}
+.rd-section-title{font-family:'Noto Serif Bengali',serif;font-size:18px;
+  font-weight:800;color:#fff;}
+.rd-refresh-badge{font-size:10px;color:#6b7280;font-family:monospace;
+  background:#1a1d2e;padding:4px 10px;border-radius:100px;border:1px solid #2d3154;}
+</style>
+""", unsafe_allow_html=True)
+
+    # ── Source selector ─────────────────────────────────────
     bdt_now = datetime.utcnow() + timedelta(hours=6)
-    st.markdown(f"""
-<div style="background:white;border:1px solid #E8E4DC;border-radius:14px;
-  padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;
-  justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.04)">
-  <div>
-    <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;
-      font-size:16px;color:#1A1A1A">📡 নিউজ রিডার — ৬০টি সোর্স</div>
-    <div style="font-size:11px;color:#888;margin-top:3px">
-      সোর্স বেছে নিন · প্রতি ফ্রেমে ৫০টি সর্বশেষ নিউজ · নিচে স্ক্রল করুন · ৫ মিনিটে auto-refresh
-    </div>
-  </div>
-  <div style="text-align:right">
-    <div style="font-size:13px;font-weight:700;color:#C8102E;font-family:monospace">
-      {bdt_now.strftime("%H:%M")} BDT
-    </div>
-    <div style="font-size:10px;color:#aaa">{bdt_now.strftime("%d %b %Y")}</div>
-  </div>
-</div>""", unsafe_allow_html=True)
 
-    # ── Quick select buttons ────────────────────────────────
     qb1,qb2,qb3,qb4,qb5 = st.columns(5)
     with qb1:
-        if st.button("✅ সব BD", key="rd_all_bd", use_container_width=True):
+        if st.button("✅ সব BD",   key="rd_all_bd",  use_container_width=True):
             for s in BD_SOURCES:
                 st.session_state[f"rd_{s[0]}"] = True
     with qb2:
-        if st.button("✅ সব INT", key="rd_all_int", use_container_width=True):
+        if st.button("✅ সব INT",  key="rd_all_int", use_container_width=True):
             for s in INT_SOURCES:
                 st.session_state[f"rd_{s[0]}"] = True
     with qb3:
-        if st.button("⭐ Priority", key="rd_prio", use_container_width=True):
+        if st.button("⭐ Priority", key="rd_prio",    use_container_width=True):
             for s in BD_SOURCES + INT_SOURCES:
                 st.session_state[f"rd_{s[0]}"] = s[0] in PRIORITY_INT_SOURCES
     with qb4:
-        if st.button("✅ সব ৬০টি", key="rd_all60", use_container_width=True):
+        if st.button("✅ সব ৬০টি", key="rd_all60",   use_container_width=True):
             for s in BD_SOURCES + INT_SOURCES:
                 st.session_state[f"rd_{s[0]}"] = True
     with qb5:
-        if st.button("❌ সব বাদ", key="rd_none", use_container_width=True):
+        if st.button("❌ সব বাদ",  key="rd_none",    use_container_width=True):
             for s in BD_SOURCES + INT_SOURCES:
                 st.session_state[f"rd_{s[0]}"] = False
 
     st.write("")
 
-    # ── BD Source checkboxes ────────────────────────────────
+    # ── Checkboxes ──────────────────────────────────────────
     with st.expander("🇧🇩 বাংলাদেশি সোর্স (৩০টি)", expanded=True):
-        bd_cb_cols = st.columns(5)
+        bd_cols = st.columns(5)
         for i, src in enumerate(BD_SOURCES):
-            with bd_cb_cols[i % 5]:
-                st.checkbox(
-                    src[1],
+            with bd_cols[i % 5]:
+                st.checkbox(src[1],
                     value=st.session_state.get(f"rd_{src[0]}", True),
-                    key=f"rd_{src[0]}"
-                )
+                    key=f"rd_{src[0]}")
 
-    # ── INT Source checkboxes ───────────────────────────────
     with st.expander("🌍 আন্তর্জাতিক সোর্স (৩০টি)", expanded=False):
-        int_cb_cols = st.columns(5)
+        int_cols = st.columns(5)
         for i, src in enumerate(INT_SOURCES):
-            with int_cb_cols[i % 5]:
+            with int_cols[i % 5]:
                 is_p = src[0] in PRIORITY_INT_SOURCES
-                st.checkbox(
-                    ("⭐ " if is_p else "") + src[1],
+                st.checkbox(("⭐ " if is_p else "") + src[1],
                     value=st.session_state.get(f"rd_{src[0]}", is_p),
-                    key=f"rd_{src[0]}"
-                )
+                    key=f"rd_{src[0]}")
 
-    # ── Selection summary ───────────────────────────────────
+    # ── Build selected list ─────────────────────────────────
     sel_bd  = [s for s in BD_SOURCES  if st.session_state.get(f"rd_{s[0]}", True)]
     sel_int = [s for s in INT_SOURCES if st.session_state.get(f"rd_{s[0]}", s[0] in PRIORITY_INT_SOURCES)]
     sel_all = sel_bd + sel_int
 
+    # Stats bar
     st.markdown(f"""
-<div style="background:white;border:1px solid #E8E4DC;border-radius:10px;
-  padding:10px 16px;margin:10px 0;display:flex;align-items:center;gap:14px;
+<div style="background:#f8f9fa;border:1px solid #E8E4DC;border-radius:10px;
+  padding:10px 16px;margin:10px 0 16px;display:flex;align-items:center;gap:16px;
   font-size:12px;color:#555">
-  <span>📊 নির্বাচিত: <b style="color:#C8102E;font-size:14px">{len(sel_all)}</b>টি সোর্স</span>
+  <span>📊 নির্বাচিত: <b style="color:#C8102E;font-size:15px">{len(sel_all)}</b>টি</span>
   <span>🇧🇩 BD: <b>{len(sel_bd)}</b></span>
   <span>🌍 INT: <b>{len(sel_int)}</b></span>
   <span style="margin-left:auto;font-size:10px;color:#aaa;font-family:monospace">
-    🔄 auto-refresh: প্রতি ৫ মিনিট
+    🔄 auto-refresh · {bdt_now.strftime("%H:%M")} BDT
   </span>
 </div>""", unsafe_allow_html=True)
 
-    if len(sel_all) == 0:
+    if not sel_all:
         st.warning("কোনো সোর্স নির্বাচন করা হয়নি।")
         st.stop()
 
-    # ── Fetch from all selected ─────────────────────────────
+    # ── Fetch each selected source ──────────────────────────
     @st.cache_data(ttl=300, show_spinner=False)
-    def fetch_reader_src(rss_url, web_url, src_id, max_n=50):
-        raw = fetch_rss(rss_url, max_n)
-        with_dt = sorted([i for i in raw if i.get("pub_dt")],
-                         key=lambda x: x.get("age_hours", 9999))
-        no_dt   = [i for i in raw if not i.get("pub_dt")]
+    def fetch_reader_src(rss_url, web_url, src_id, max_n=20):
+        """Fetch latest N articles from one source, sorted freshest first."""
+        raw = fetch_rss(rss_url, max_n * 2)
+        with_dt = sorted(
+            [i for i in raw if i.get("pub_dt") is not None],
+            key=lambda x: x.get("age_hours", 9999)
+        )
+        no_dt = [i for i in raw if i.get("pub_dt") is None]
         return (with_dt + no_dt)[:max_n]
 
-    all_items = []
+    # Progress + fetch
     prog = st.progress(0, text="লোড হচ্ছে...")
-    total_sel = len(sel_all)
+    src_news = {}   # {src_id: [items]}
     for idx, src in enumerate(sel_all):
         items = fetch_reader_src(
             src[2],
             src[3] if len(src) > 3 else "",
-            src[0], 50
+            src[0], 20
         )
-        is_bd = src in BD_SOURCES
-        is_p  = src[0] in PRIORITY_INT_SOURCES
-        for it in items:
-            it["_src"]    = src[1]
-            it["_is_bd"]  = is_bd
-            it["_is_p"]   = is_p
-        all_items.extend(items)
-        prog.progress((idx+1)/total_sel,
-                      text=f"লোড হচ্ছে ({idx+1}/{total_sel}): {src[1]}")
+        src_news[src[0]] = {
+            "name":    src[1],
+            "items":   items,
+            "is_bd":   src in BD_SOURCES,
+            "is_prio": src[0] in PRIORITY_INT_SOURCES,
+            "live":    len(items) > 0,
+        }
+        prog.progress((idx+1)/len(sel_all),
+                      text=f"({idx+1}/{len(sel_all)}) {src[1]}")
     prog.empty()
 
-    # Sort freshest first
-    all_items.sort(key=lambda x: x.get("age_hours", 9999))
+    # ── Render dark card grid ───────────────────────────────
+    total_live = sum(1 for d in src_news.values() if d["live"])
 
-    total = len(all_items)
-    bdt_now2 = datetime.utcnow() + timedelta(hours=6)
     st.markdown(f"""
-<div style="font-size:12px;color:#666;margin:6px 0 14px;
-  display:flex;align-items:center;gap:10px">
-  <span>📰 মোট <b style="color:#C8102E;font-size:15px">{total}</b>টি হেডলাইন</span>
-  <span style="color:#aaa">·</span>
-  <span>{total_sel}টি সোর্স থেকে</span>
-  <span style="color:#aaa">·</span>
-  <span style="font-family:monospace;color:#aaa">
-    {bdt_now2.strftime("%H:%M")} BDT
-  </span>
-</div>""", unsafe_allow_html=True)
-
-    # ── Build frames of 50 items ────────────────────────────
-    FRAME_SIZE = 50
-    COLS_PER_ROW = 4
-
-    frames = [all_items[i:i+FRAME_SIZE]
-              for i in range(0, max(len(all_items), 1), FRAME_SIZE)]
-
-    for f_idx, frame in enumerate(frames):
-        # Frame header
-        st.markdown(f"""
-<div style="display:flex;align-items:center;gap:10px;margin:18px 0 8px">
-  <div style="height:2px;flex:1;background:linear-gradient(90deg,#C8102E,transparent)"></div>
-  <span style="background:white;border:1.5px solid #C8102E;color:#C8102E;
-    font-size:11px;font-weight:700;font-family:monospace;
-    padding:4px 14px;border-radius:100px;">
-    📄 ফ্রেম #{f_idx+1} — {len(frame)}টি হেডলাইন
-  </span>
-  <div style="height:2px;flex:1;background:linear-gradient(90deg,transparent,#C8102E)"></div>
-</div>""", unsafe_allow_html=True)
-
-        # Build card HTML for this frame
-        cards_html = ""
-        for item in frame:
-            src_name  = item.get("_src", "")
-            is_bd     = item.get("_is_bd", True)
-            is_p      = item.get("_is_p", False)
-            title     = item.get("title", "")
-            lk        = item.get("link", "")
-            t_ago     = time_ago_bn(item.get("pub_dt"))
-
-            # Card class + border color
-            if is_p:
-                card_cls = "rd-card prio"
-                bdg_cls  = "rd-badge prio-badge"
-                flag     = "⭐"
-            elif is_bd:
-                card_cls = "rd-card"
-                bdg_cls  = "rd-badge bd-badge"
-                flag     = "🇧🇩"
-            else:
-                card_cls = "rd-card intl"
-                bdg_cls  = "rd-badge int-badge"
-                flag     = "🌍"
-
-            title_el = (
-                f'<a href="{lk}" target="_blank" class="rd-title">{title}</a>'
-                if lk else
-                f'<span class="rd-title" style="cursor:default">{title}</span>'
-            )
-            time_el = f'<span class="rd-time">⏱ {t_ago}</span>' if t_ago else ""
-
-            cards_html += f"""
-<div class="{card_cls}">
-  {title_el}
-  <div class="rd-meta">
-    <span class="{bdg_cls}">{flag} {src_name}</span>
-    {time_el}
+<div class="rd-section">
+  <div class="rd-section-header">
+    <div class="rd-section-title">📡 নিউজ রিডার</div>
+    <div class="rd-refresh-badge">
+      {total_live}/{len(sel_all)} LIVE &nbsp;·&nbsp;
+      {bdt_now.strftime("%H:%M")} BDT &nbsp;·&nbsp;
+      ↻ 5min auto-refresh
+    </div>
   </div>
-</div>"""
+  <div style="font-size:11px;color:#6b7280;margin-bottom:12px">
+    প্রতিটি কার্ডে সোর্সের সর্বশেষ ২০টি নিউজ স্ক্রল করে দেখুন
+  </div>
+  <div class="rd-grid">
+""", unsafe_allow_html=True)
 
-        # Scrollable frame wrapper (~480px = 5 inches)
-        st.markdown(
-            f'<div class="rd-frame">{cards_html}</div>',
-            unsafe_allow_html=True
+    for src in sel_all:
+        d = src_news.get(src[0], {})
+        sname  = d.get("name", src[1])
+        items  = d.get("items", [])
+        live   = d.get("live", False)
+        is_bd  = d.get("is_bd", True)
+        is_p   = d.get("is_prio", False)
+
+        # Card class
+        card_cls = "src-card prio-card" if is_p else ("src-card bd-card" if is_bd else "src-card int-card")
+        accent   = "#f59e0b" if is_p else ("#C8102E" if is_bd else "#3b82f6")
+        flag     = "⭐" if is_p else ("🇧🇩" if is_bd else "🌍")
+
+        # Badge
+        badge_html = (
+            f'<span class="src-card-badge src-card-live">● LIVE</span>'
+            if live else
+            f'<span class="src-card-badge src-card-off">○ OFF</span>'
         )
+
+        # Build news items HTML
+        if items:
+            news_html = ""
+            for item in items:
+                title  = item.get("title","")
+                lk     = item.get("link","")
+                t_ago  = time_ago_bn(item.get("pub_dt"))
+                time_el = f'<span class="news-item-time">⏱ {t_ago}</span>' if t_ago else ""
+
+                if lk:
+                    title_el = f'<a href="{lk}" target="_blank" class="news-item-title"><span class="news-item-dot" style="background:{accent}"></span>{title}</a>'
+                else:
+                    title_el = f'<span class="news-item-title"><span class="news-item-dot" style="background:{accent}"></span>{title}</span>'
+
+                news_html += f'<div class="news-item">{title_el}{time_el}</div>'
+        else:
+            news_html = '<div style="text-align:center;padding:40px 0;color:#4b5563;font-size:12px">❌ ফিড পাওয়া যায়নি</div>'
+
+        st.markdown(f"""
+<div class="{card_cls}">
+  <div class="src-card-header">
+    <div class="src-card-name">{flag} {sname}</div>
+    {badge_html}
+  </div>
+  <div class="src-card-body">{news_html}</div>
+</div>""", unsafe_allow_html=True)
+
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
 
 with tab_stats:

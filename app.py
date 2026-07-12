@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║   NewsPulse AI  ·  Bangladesh Intelligent Newsroom Platform  v5.0          ║
+║   NewsPulse AI  ·  Bangladesh Intelligent Newsroom Platform  v5.0          ║ 
 ║   Powered by Google News · Google Trends · YouTube · Facebook · Gemini AI  ║
 ║   Design: Prothom Alo-Inspired Premium Newsroom UI                         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝

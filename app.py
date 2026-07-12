@@ -328,40 +328,38 @@ for k, v in _DEFAULTS.items():
 # ══════════════════════════════════════════════════════════════
 
 # 🇧🇩 BD_SOURCES (১-৩০) — id, bangla_name, rss_url, web_url
+# BD_SOURCES: (id, name, primary_rss, web_url, fallback_rss_list)
 BD_SOURCES = [
-    # ── বাংলা সংবাদপত্র ──────────────────────────────────────
-    ("prothomalo",       "প্রথম আলো",            "https://www.prothomalo.com/feed/",                      "https://prothomalo.com"),
-    ("bd_pratidin",      "বাংলাদেশ প্রতিদিন",   "https://www.bd-pratidin.com/feed/",                     "https://bd-pratidin.com"),
-    ("jugantor",         "যুগান্তর",              "https://www.jugantor.com/feed/",                        "https://jugantor.com"),
-    ("kalerkantho",      "কালের কণ্ঠ",           "https://www.kalerkantho.com/rss.xml",                   "https://kalerkantho.com"),
-    ("samakal",          "দৈনিক সমকাল",          "https://samakal.com/feed/",                             "https://samakal.com"),
-    ("ittefaq",          "দৈনিক ইত্তেফাক",       "https://www.ittefaq.com.bd/feed/",                      "https://ittefaq.com.bd"),
-    ("mzamin",           "মানব জমিন",             "https://mzamin.com/feed.php",                           "https://mzamin.com"),
-    ("nayadiganta",      "নয়া দিগন্ত",           "https://www.dailynayadiganta.com/feed/",                "https://dailynayadiganta.com"),
-    ("inqilab",          "দৈনিক ইনকিলাব",        "https://www.dailyinqilab.com/feed/",                    "https://dailyinqilab.com"),
-    ("janakantha",       "দৈনিক জনকণ্ঠ",         "https://www.dailyjanakantha.com/feed/",                 "https://dailyjanakantha.com"),
-    ("bhorerkagoj",      "ভোরের কাগজ",            "https://www.bhorerkagoj.com/feed/",                     "https://bhorerkagoj.com"),
-    ("amadershomoy",     "আমাদের সময়",            "https://www.dainikamadershomoy.com/feed/",              "https://dainikamadershomoy.com"),
-    ("bdnews24",         "বিডিনিউজ২৪",           "https://bdnews24.com/feed",                             "https://bdnews24.com"),
-    ("banglanews24",     "বাংলানিউজ২৪",          "https://www.banglanews24.com/rss.xml",                  "https://banglanews24.com"),
-    ("jagonews24",       "জাগো নিউজ ২৪",         "https://www.jagonews24.com/feed/",                      "https://jagonews24.com"),
-    ("banglatribune",    "বাংলা ট্রিবিউন",        "https://www.banglatribune.com/feed/",                   "https://banglatribune.com"),
-    ("dhakapost",        "ঢাকা পোস্ট",            "https://www.dhakapost.com/feed/",                       "https://dhakapost.com"),
-    ("barta24",          "বার্তা২৪",              "https://barta24.com/feed/",                             "https://barta24.com"),
-    ("risingbd",         "রাইজিংবিডি",            "https://risingbd.com/feed",                             "https://risingbd.com"),
-    ("bd24live",         "বিডি২৪লাইভ",           "https://www.bd24live.com/feed/",                        "https://bd24live.com"),
-    # ── টেলিভিশন চ্যানেল ────────────────────────────────────
-    ("somoynews",        "সময় নিউজ",             "https://www.somoynews.tv/rss.xml",                      "https://somoynews.tv"),
-    ("jamunatv",         "যমুনা টেলিভিশন",       "https://jamuna.tv/feed/",                               "https://jamuna.tv"),
-    ("ntv",              "এনটিভি",                "https://www.ntvbd.com/rss.xml",                         "https://ntvbd.com"),
-    ("channel24",        "চ্যানেল ২৪",            "https://www.channel24.bd/feed/",                        "https://channel24.bd"),
-    ("channeli",         "চ্যানেল আই",            "https://channelionline.com/feed/",                      "https://channelionline.com"),
-    ("rtv",              "আরটিভি",                "https://www.rtvonline.com/feed",                        "https://rtvonline.com"),
-    # ── ইংরেজি (বাংলাদেশ) ──────────────────────────────────
-    ("thedailystar",     "The Daily Star",         "https://www.thedailystar.net/arcio/rss/",               "https://thedailystar.net"),
-    ("dhakatribune",     "Dhaka Tribune",          "https://www.dhakatribune.com/feed",                     "https://dhakatribune.com"),
-    ("tbsnews",          "The Business Standard",  "https://www.tbsnews.net/rss.xml",                       "https://tbsnews.net"),
-    ("thefinancialexpress","The Financial Express","https://thefinancialexpress.com.bd/feed/",               "https://thefinancialexpress.com.bd"),
+    ("prothomalo",    "প্রথম আলো",          "https://www.prothomalo.com/feed/",               "https://prothomalo.com",             ["https://www.prothomalo.com/rss.xml"]),
+    ("bd_pratidin",   "বাংলাদেশ প্রতিদিন", "https://www.bd-pratidin.com/feed/",              "https://bd-pratidin.com",            ["https://www.bd-pratidin.com/rss.xml","https://news.google.com/rss/search?q=site:bd-pratidin.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("jugantor",      "যুগান্তর",            "https://www.jugantor.com/feed/",                 "https://jugantor.com",               ["https://news.google.com/rss/search?q=site:jugantor.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("kalerkantho",   "কালের কণ্ঠ",         "https://www.kalerkantho.com/rss.xml",            "https://kalerkantho.com",            ["https://www.kalerkantho.com/feed/","https://news.google.com/rss/search?q=site:kalerkantho.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("samakal",       "দৈনিক সমকাল",        "https://samakal.com/feed/",                      "https://samakal.com",                ["https://samakal.com/rss.xml","https://news.google.com/rss/search?q=site:samakal.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("ittefaq",       "দৈনিক ইত্তেফাক",     "https://www.ittefaq.com.bd/feed/",               "https://ittefaq.com.bd",             ["https://news.google.com/rss/search?q=site:ittefaq.com.bd&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("mzamin",        "মানব জমিন",           "https://mzamin.com/feed.php",                    "https://mzamin.com",                 ["https://mzamin.com/rss.xml","https://news.google.com/rss/search?q=site:mzamin.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("nayadiganta",   "নয়া দিগন্ত",         "https://www.dailynayadiganta.com/feed/",         "https://dailynayadiganta.com",       ["https://news.google.com/rss/search?q=site:dailynayadiganta.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("inqilab",       "দৈনিক ইনকিলাব",      "https://www.dailyinqilab.com/feed/",             "https://dailyinqilab.com",           ["https://news.google.com/rss/search?q=site:dailyinqilab.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("janakantha",    "দৈনিক জনকণ্ঠ",       "https://www.dailyjanakantha.com/feed/",          "https://dailyjanakantha.com",        ["https://news.google.com/rss/search?q=site:dailyjanakantha.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("bhorerkagoj",   "ভোরের কাগজ",          "https://www.bhorerkagoj.com/feed/",              "https://bhorerkagoj.com",            ["https://news.google.com/rss/search?q=site:bhorerkagoj.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("amadershomoy",  "আমাদের সময়",          "https://www.dainikamadershomoy.com/feed/",       "https://dainikamadershomoy.com",     ["https://news.google.com/rss/search?q=site:dainikamadershomoy.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("bdnews24",      "বিডিনিউজ২৪",         "https://bdnews24.com/feed",                      "https://bdnews24.com",               ["https://bdnews24.com/rss","https://news.google.com/rss/search?q=site:bdnews24.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("banglanews24",  "বাংলানিউজ২৪",        "https://www.banglanews24.com/rss.xml",           "https://banglanews24.com",           ["https://www.banglanews24.com/feed/","https://news.google.com/rss/search?q=site:banglanews24.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("jagonews24",    "জাগো নিউজ ২৪",       "https://www.jagonews24.com/feed/",               "https://jagonews24.com",             ["https://news.google.com/rss/search?q=site:jagonews24.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("banglatribune", "বাংলা ট্রিবিউন",      "https://www.banglatribune.com/feed/",            "https://banglatribune.com",          ["https://banglatribune.com/rss.xml","https://news.google.com/rss/search?q=site:banglatribune.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("dhakapost",     "ঢাকা পোস্ট",          "https://www.dhakapost.com/feed/",                "https://dhakapost.com",              ["https://news.google.com/rss/search?q=site:dhakapost.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("barta24",       "বার্তা২৪",            "https://barta24.com/feed/",                      "https://barta24.com",                ["https://barta24.com/rss.xml","https://news.google.com/rss/search?q=site:barta24.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("risingbd",      "রাইজিংবিডি",          "https://risingbd.com/feed",                      "https://risingbd.com",               ["https://risingbd.com/rss.xml","https://news.google.com/rss/search?q=site:risingbd.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("bd24live",      "বিডি২৪লাইভ",         "https://www.bd24live.com/feed/",                 "https://bd24live.com",               ["https://news.google.com/rss/search?q=site:bd24live.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("somoynews",     "সময় নিউজ",           "https://www.somoynews.tv/rss.xml",               "https://somoynews.tv",               ["https://www.somoynews.tv/feed/","https://news.google.com/rss/search?q=site:somoynews.tv&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("jamunatv",      "যমুনা টেলিভিশন",     "https://jamuna.tv/feed/",                        "https://jamuna.tv",                  ["https://news.google.com/rss/search?q=site:jamuna.tv&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("ntv",           "এনটিভি",              "https://www.ntvbd.com/rss.xml",                  "https://ntvbd.com",                  ["https://www.ntvbd.com/feed/","https://news.google.com/rss/search?q=site:ntvbd.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("channel24",     "চ্যানেল ২৪",          "https://www.channel24.bd/feed/",                 "https://channel24.bd",               ["https://news.google.com/rss/search?q=site:channel24.bd&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("channeli",      "চ্যানেল আই",          "https://channelionline.com/feed/",               "https://channelionline.com",         ["https://news.google.com/rss/search?q=site:channelionline.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("rtv",           "আরটিভি",              "https://www.rtvonline.com/feed",                 "https://rtvonline.com",              ["https://www.rtvonline.com/rss.xml","https://news.google.com/rss/search?q=site:rtvonline.com&hl=bn&gl=BD&ceid=BD:bn"]),
+    ("thedailystar",  "The Daily Star",       "https://www.thedailystar.net/arcio/rss/",        "https://thedailystar.net",           ["https://www.thedailystar.net/rss.xml"]),
+    ("dhakatribune",  "Dhaka Tribune",        "https://www.dhakatribune.com/feed",              "https://dhakatribune.com",           ["https://www.dhakatribune.com/rss.xml"]),
+    ("tbsnews",       "The Business Standard","https://www.tbsnews.net/rss.xml",                "https://tbsnews.net",                ["https://www.tbsnews.net/feed/"]),
+    ("thefinancialexpress","The Financial Express","https://thefinancialexpress.com.bd/feed/",  "https://thefinancialexpress.com.bd", ["https://thefinancialexpress.com.bd/rss.xml"]),
 ]
 
 # 🌍 INT_SOURCES (৩১-৬০) — id, name, rss_url, web_url
@@ -599,7 +597,7 @@ def filter_recent(items: list, hours: int = 6) -> list:
 #  DATA FETCHING
 # ═════════════════════════════════════════════════════
 
-@st.cache_data(ttl=120, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def fetch_google_news(topic: str = "বাংলাদেশ", max_items: int = 20) -> list:
     encoded = urllib.parse.quote(topic)
     urls = [
@@ -628,7 +626,7 @@ def fetch_google_news(topic: str = "বাংলাদেশ", max_items: int = 
             continue
     return []
 
-@st.cache_data(ttl=120, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def fetch_news_categories() -> dict:
     cats = {
         "🔴 শীর্ষ সংবাদ":   "বাংলাদেশ",
@@ -1245,22 +1243,31 @@ with tab_news:
                     st.info("⚠ ডেটা লোড হয়নি। রিফ্রেশ করুন।")
                     continue
                 for item in items[:12]:
-                    sc  = trend_score(item["title"], kw_dict)
-                    src = item.get("source","Google News")[:25]
-                    em  = next((v for k,v in _emoji_map.items() if k in key), "📰")
+                    sc     = trend_score(item["title"], kw_dict)
+                    src    = item.get("source","Google News")[:25]
+                    em     = next((v for k,v in _emoji_map.items() if k in key), "📰")
+                    lk     = item.get("link","")
+                    t_ago  = time_ago_bn(item.get("pub_dt"))
                     badges = f'<span class="score-pill">🔥 {sc}</span>'
                     if sc >= 85:
-                        badges += ' <span class="score-pill breaking">⚡ ব্রেকিং</span>'
+                        badges += ' <span class="score-pill brk">⚡ ব্রেকিং</span>'
+                    _time_html = (
+                        ('<span style="font-size:10px;color:#aaa;font-family:monospace">⏱ ' + t_ago + '</span>')
+                    ) if t_ago else ""
+                    _a_open  = f'<a href="{lk}" target="_blank" style="text-decoration:none;color:inherit">' if lk else ""
+                    _a_close = "</a>" if lk else ""
                     st.markdown(f"""
 <div class="news-card">
   <div class="news-card-emoji">{em}</div>
   <div class="news-card-body">
     <div class="news-card-meta">
       <span class="news-card-cat">{key[:10]}</span>
-      <span>·</span><span>{src}</span>
+      <span style="color:#ddd">·</span>
+      <span style="font-size:11px;color:#888">{src}</span>
+      {_time_html}
     </div>
-    <div class="news-card-title">{item['title']}</div>
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">{badges}</div>
+    {_a_open}<div class="news-card-title">{item['title']}</div>{_a_close}
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">{badges}</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1945,26 +1952,27 @@ with tab_coverage:
 </div>""", unsafe_allow_html=True)
 
     # ── Fetch functions ─────────────────────────────────────────
-    @st.cache_data(ttl=90, show_spinner=False)
-    def smart_fetch(rss_url: str, web_url: str, max_items: int = 8, hours: int = 6) -> list:
-        """Fetch recent headlines — RSS first, then Google News site: fallback."""
-        raw   = fetch_rss(rss_url, max_items * 3)
-        items = filter_recent(raw, hours)
-        if items:
-            return items[:max_items]
-        if raw:                    # has articles but no pubDate — use them
-            return raw[:max_items]
-        # Google News fallback
-        try:
-            domain = web_url.replace("https://","").replace("http://","").split("/")[0]
-            gn_url = f"https://news.google.com/rss/search?q=site:{domain}&hl=en&gl=BD&ceid=BD:en"
-            raw2   = fetch_rss(gn_url, max_items * 2)
-            items2 = filter_recent(raw2, hours)
-            return items2[:max_items] if items2 else raw2[:max_items]
-        except Exception:
-            return []
+    @st.cache_data(ttl=60, show_spinner=False)
+    def smart_fetch(rss_url: str, web_url: str, max_items: int = 8,
+                    hours: int = 6, fallbacks: list = None) -> list:
+        """Fetch recent headlines — primary RSS → fallbacks → Google News."""
+        domain   = web_url.replace("https://","").replace("http://","").split("/")[0]
+        all_urls = [rss_url] + (fallbacks or [])
+        all_urls += [
+            f"https://news.google.com/rss/search?q=site:{domain}&hl=bn&gl=BD&ceid=BD:bn",
+            f"https://news.google.com/rss/search?q=site:{domain}&hl=en&gl=BD&ceid=BD:en",
+        ]
+        for url in all_urls:
+            try:
+                raw   = fetch_rss(url, max_items * 3)
+                items = filter_recent(raw, hours)
+                if items:   return items[:max_items]
+                if raw:     return raw[:max_items]
+            except Exception:
+                continue
+        return []
 
-    @st.cache_data(ttl=90, show_spinner=False)
+    @st.cache_data(ttl=60, show_spinner=False)
     def fetch_prothomalo(max_items: int = 30) -> list:
         """Fetch Prothom Alo headlines — last 6 hours."""
         for url in [
@@ -1978,7 +1986,7 @@ with tab_coverage:
             if raw:     return raw[:max_items]   # no pubDate fallback
         return []
 
-    @st.cache_data(ttl=90, show_spinner=False)
+    @st.cache_data(ttl=60, show_spinner=False)
     def fetch_all_other_sources(max_per: int = 6) -> dict:
         """Fetch last-6h headlines from all 59 sources (BD-PA + INT)."""
         OTHER = [s for s in BD_SOURCES if s[0] != "prothomalo"] + INT_SOURCES
@@ -1986,7 +1994,8 @@ with tab_coverage:
         for src in OTHER:
             sid  = src[0]; sname = src[1]; srss = src[2]
             surl = src[3] if len(src) > 3 else ""
-            items = smart_fetch(srss, surl, max_per, 6)
+            _fb   = list(src[4]) if len(src) > 4 else []
+            items = smart_fetch(srss, surl, max_per, 6, _fb)
             # Extra filter: reject video / bad links
             items = [i for i in items if i.get("link","").count("/") >= 3]
             result[sid] = {
@@ -2319,15 +2328,22 @@ with tab_coverage:
     st.markdown('<div class="np-sec"><div class="np-sec-title">🗞️ প্রথম আলোর বর্তমান হেডলাইন (শেষ ৬ ঘণ্টা)</div></div>', unsafe_allow_html=True)
     if pa_items:
         for i, item in enumerate(pa_items[:15]):
-            lk = item.get("link","")
+            lk    = item.get("link","")
+            t_ago = time_ago_bn(item.get("pub_dt"))
+            t_el  = f'<span style="font-size:10px;color:#aaa;font-family:monospace;margin-left:8px">⏱ {t_ago}</span>' if t_ago else ""
+            rank_col = "#C8102E" if i < 3 else "#ddd"
             st.markdown(f"""
 <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f0ece4">
   <span style="font-family:'Noto Serif Bengali',serif;font-size:18px;font-weight:900;
-    color:{'#C8102E' if i<3 else '#ddd'};min-width:28px;line-height:1.2">{i+1}</span>
+    color:{rank_col};min-width:28px;line-height:1.2">{i+1}</span>
   <div style="flex:1">
-    <div style="font-family:'Noto Serif Bengali',serif;font-size:13.5px;
-      font-weight:700;color:#1A1A1A;line-height:1.45">{item['title']}</div>
-    {f'<a href="{lk}" target="_blank" style="font-size:10px;color:#C8102E;text-decoration:none">🔗 পড়ুন</a>' if lk else ''}
+    <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:3px">
+      {f'<a href="{lk}" target="_blank" style="font-family:Noto Serif Bengali,serif;font-size:13.5px;font-weight:700;color:#1A1A1A;text-decoration:none;line-height:1.45">{item["title"]}</a>' if lk else f'<span style="font-family:Noto Serif Bengali,serif;font-size:13.5px;font-weight:700;color:#1A1A1A;line-height:1.45">{item["title"]}</span>'}
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      {f'<a href="{lk}" target="_blank" style="font-size:10px;color:#C8102E;text-decoration:none">🔗 পড়ুন</a>' if lk else ""}
+      {t_el}
+    </div>
   </div>
 </div>""", unsafe_allow_html=True)
     else:
@@ -2427,8 +2443,9 @@ with tab_reader:
     prog = st.progress(0, text="লোড হচ্ছে...")
     src_data = {}
     for idx, src in enumerate(sel_all):
+        _fallbacks = list(src[4]) if len(src) > 4 else []
         items = fetch_reader_src(
-            src[2], src[3] if len(src) > 3 else "", src[0], 20)
+            src[2], src[3] if len(src) > 3 else "", src[0], 20, _fallbacks)
         src_data[src[0]] = {
             "name":  src[1], "items": items,
             "is_bd": src in BD_SOURCES,

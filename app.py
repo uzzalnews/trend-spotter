@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║   NewsPulse AI  ·  Bangladesh Intelligent Newsroom Platform  v5.0          ║ 
+║   NewsPulse AI  ·  Bangladesh Intelligent Newsroom Platform  v5.0          ║
 ║   Powered by Google News · Google Trends · YouTube · Facebook · Gemini AI  ║
 ║   Design: Prothom Alo-Inspired Premium Newsroom UI                         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
@@ -1954,7 +1954,7 @@ with tab_coverage:
     # ── Fetch functions ─────────────────────────────────────────
     @st.cache_data(ttl=60, show_spinner=False)
     def smart_fetch(rss_url: str, web_url: str, max_items: int = 8,
-                    hours: int = 6, fallbacks: list = None) -> list:
+                    hours: int = 6, fallbacks=None) -> list:
         """Fetch recent headlines — primary RSS → fallbacks → Google News."""
         domain   = web_url.replace("https://","").replace("http://","").split("/")[0]
         all_urls = [rss_url] + (fallbacks or [])
@@ -1994,8 +1994,8 @@ with tab_coverage:
         for src in OTHER:
             sid  = src[0]; sname = src[1]; srss = src[2]
             surl = src[3] if len(src) > 3 else ""
-            _fb   = list(src[4]) if len(src) > 4 else []
-            items = smart_fetch(srss, surl, max_per, 6, _fb)
+            _fb   = tuple(src[4]) if len(src) > 4 else ()
+            items = smart_fetch(srss, surl, max_per, 6, list(_fb))
             # Extra filter: reject video / bad links
             items = [i for i in items if i.get("link","").count("/") >= 3]
             result[sid] = {
@@ -2357,223 +2357,290 @@ with tab_coverage:
 with tab_reader:
 
     bdt_now = datetime.utcnow() + timedelta(hours=6)
-
-    # Auto-refresh every 5 minutes
     st.markdown('<meta http-equiv="refresh" content="300">', unsafe_allow_html=True)
 
-    # ── Quick select buttons ────────────────────────────────
-    qb1,qb2,qb3,qb4,qb5 = st.columns(5)
-    with qb1:
-        if st.button("✅ সব BD",    key="rd_all_bd",  use_container_width=True):
-            for s in BD_SOURCES: st.session_state[f"rd_{s[0]}"] = True
-    with qb2:
-        if st.button("✅ সব INT",   key="rd_all_int", use_container_width=True):
-            for s in INT_SOURCES: st.session_state[f"rd_{s[0]}"] = True
-    with qb3:
-        if st.button("⭐ Priority", key="rd_prio",    use_container_width=True):
-            for s in BD_SOURCES + INT_SOURCES:
-                st.session_state[f"rd_{s[0]}"] = s[0] in PRIORITY_INT_SOURCES
-    with qb4:
-        if st.button("✅ সব ৬০টি", key="rd_all60",   use_container_width=True):
-            for s in BD_SOURCES + INT_SOURCES: st.session_state[f"rd_{s[0]}"] = True
-    with qb5:
-        if st.button("❌ সব বাদ",  key="rd_none",    use_container_width=True):
-            for s in BD_SOURCES + INT_SOURCES: st.session_state[f"rd_{s[0]}"] = False
+    # ── CSS ────────────────────────────────────────────────
+    st.markdown("""<style>
+.rd-sidebar{background:white;border-right:1px solid #E8E4DC;padding:14px 10px;
+  height:calc(100vh - 140px);overflow-y:auto;position:sticky;top:0;}
+.rd-src-item{display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:10px;cursor:pointer;margin-bottom:4px;border:1.5px solid transparent;
+  background:white;transition:all .15s;}
+.rd-src-item:hover{background:#fff5f6;border-color:#fca5a5;}
+.rd-src-item.active{background:#fff0f0;border-color:#C8102E;}
+.rd-src-logo{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:16px;font-weight:900;color:white;flex-shrink:0;}
+.rd-src-info{flex:1;min-width:0;}
+.rd-src-name{font-size:12.5px;font-weight:700;color:#1A1A1A;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rd-src-url{font-size:9.5px;color:#aaa;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;font-family:monospace;}
+.rd-live-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.rd-live-dot.on{background:#16a34a;}
+.rd-live-dot.off{background:#d1d5db;}
 
-    st.write("")
+/* Right side news cards */
+.rd-news-header{background:white;border:1px solid #E8E4DC;border-radius:14px;
+  padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;
+  justify-content:space-between;}
+.rd-col-card{background:white;border:2px solid #E8E4DC;border-radius:14px;
+  overflow:hidden;height:520px;display:flex;flex-direction:column;}
+.rd-col-header{padding:11px 14px;display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid #f0ece4;flex-shrink:0;}
+.rd-col-name{font-family:'Noto Serif Bengali',serif;font-size:13px;
+  font-weight:800;color:#1A1A1A;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rd-col-body{flex:1;overflow-y:auto;padding:6px 12px;
+  scrollbar-width:thin;scrollbar-color:#E8E4DC transparent;}
+.rd-col-body::-webkit-scrollbar{width:4px;}
+.rd-col-body::-webkit-scrollbar-thumb{background:#E8E4DC;border-radius:2px;}
+.rd-news-row{padding:9px 0;border-bottom:1px solid #f5f0ea;}
+.rd-news-row:last-child{border-bottom:none;}
+.rd-news-title{font-family:'Noto Serif Bengali',serif;font-size:12.5px;
+  font-weight:700;color:#1A1A1A;line-height:1.45;text-decoration:none;display:block;}
+.rd-news-title:hover{color:#C8102E;}
+.rd-news-time{font-size:9.5px;color:#aaa;font-family:monospace;margin-top:3px;}
+.rd-badge-bd{font-size:9px;background:#fef2f2;color:#C8102E;
+  border:1px solid #fca5a5;padding:1px 7px;border-radius:100px;font-weight:700;}
+.rd-badge-int{font-size:9px;background:#eff6ff;color:#1d4ed8;
+  border:1px solid #bfdbfe;padding:1px 7px;border-radius:100px;font-weight:700;}
+.rd-badge-prio{font-size:9px;background:#fffbeb;color:#b45309;
+  border:1px solid #fde68a;padding:1px 7px;border-radius:100px;font-weight:700;}
+.rd-sync-btn{display:inline-flex;align-items:center;gap:6px;
+  background:#C8102E;color:white;border:none;border-radius:8px;
+  padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;}
+</style>""", unsafe_allow_html=True)
 
-    # ── Source checkboxes ───────────────────────────────────
-    with st.expander("🇧🇩 বাংলাদেশি সোর্স (৩০টি)", expanded=True):
-        for i, src in enumerate(BD_SOURCES):
-            if i % 5 == 0:
-                _row_cols = st.columns(5)
-            with _row_cols[i % 5]:
-                st.checkbox(src[1],
-                    value=st.session_state.get(f"rd_{src[0]}", True),
-                    key=f"rd_{src[0]}")
-
-    with st.expander("🌍 আন্তর্জাতিক সোর্স (৩০টি)", expanded=False):
-        for i, src in enumerate(INT_SOURCES):
-            if i % 5 == 0:
-                _row_cols2 = st.columns(5)
-            with _row_cols2[i % 5]:
-                is_p = src[0] in PRIORITY_INT_SOURCES
-                st.checkbox(("⭐ " if is_p else "") + src[1],
-                    value=st.session_state.get(f"rd_{src[0]}", is_p),
-                    key=f"rd_{src[0]}")
-
-    # ── Selected sources ────────────────────────────────────
-    sel_bd  = [s for s in BD_SOURCES  if st.session_state.get(f"rd_{s[0]}", True)]
-    sel_int = [s for s in INT_SOURCES if st.session_state.get(f"rd_{s[0]}", s[0] in PRIORITY_INT_SOURCES)]
-    sel_all = sel_bd + sel_int
-
-    st.markdown(f"""
-<div style="background:white;border:1px solid #E8E4DC;border-radius:10px;
-  padding:9px 16px;margin:8px 0 14px;display:flex;align-items:center;gap:14px;
-  font-size:12px;color:#555;font-family:'Hind Siliguri',sans-serif">
-  <span>📊 নির্বাচিত: <b style="color:#C8102E;font-size:15px">{len(sel_all)}</b>টি</span>
-  <span>🇧🇩 {len(sel_bd)}</span>
-  <span>🌍 {len(sel_int)}</span>
-  <span style="margin-left:auto;font-size:10px;color:#aaa;font-family:monospace">
-    🔄 auto-refresh · {bdt_now.strftime("%H:%M")} BDT
-  </span>
-</div>""", unsafe_allow_html=True)
-
-    if not sel_all:
-        st.warning("কোনো সোর্স নির্বাচন করা হয়নি।")
-        st.stop()
-
-    # ── Fetch ───────────────────────────────────────────────
-    @st.cache_data(ttl=300, show_spinner=False)
-    def fetch_reader_src(rss_url, web_url, src_id, max_n=20):
-        raw = fetch_rss(rss_url, max_n * 2)
-        if not raw:
-            # Google News fallback
+    # ── Fetch function (tuple fallbacks — cacheable) ────────
+    @st.cache_data(ttl=60, show_spinner=False)
+    def fetch_reader_src(rss_url, web_url, src_id, max_n=20, fallbacks=()):
+        """Fetch with fallback chain. fallbacks must be tuple for caching."""
+        domain   = web_url.replace("https://","").replace("http://","").split("/")[0]
+        all_urls = [rss_url] + list(fallbacks) + [
+            f"https://news.google.com/rss/search?q=site:{domain}&hl=bn&gl=BD&ceid=BD:bn",
+            f"https://news.google.com/rss/search?q=site:{domain}&hl=en&gl=BD&ceid=BD:en",
+        ]
+        for url in all_urls:
             try:
-                domain = web_url.replace("https://","").replace("http://","").split("/")[0]
-                gn = f"https://news.google.com/rss/search?q=site:{domain}&hl=en&gl=BD&ceid=BD:en"
-                raw = fetch_rss(gn, max_n * 2)
+                raw = fetch_rss(url, max_n * 2)
+                if raw:
+                    with_dt = sorted(
+                        [i for i in raw if i.get("pub_dt")],
+                        key=lambda x: x.get("age_hours", 9999)
+                    )
+                    no_dt = [i for i in raw if not i.get("pub_dt")]
+                    result = (with_dt + no_dt)[:max_n]
+                    if result:
+                        return result
             except Exception:
-                pass
-        with_dt = sorted([i for i in raw if i.get("pub_dt")],
-                         key=lambda x: x.get("age_hours", 9999))
-        no_dt   = [i for i in raw if not i.get("pub_dt")]
-        return (with_dt + no_dt)[:max_n]
+                continue
+        return []
 
-    prog = st.progress(0, text="লোড হচ্ছে...")
-    src_data = {}
-    for idx, src in enumerate(sel_all):
-        _fallbacks = list(src[4]) if len(src) > 4 else []
-        items = fetch_reader_src(
-            src[2], src[3] if len(src) > 3 else "", src[0], 20, _fallbacks)
-        src_data[src[0]] = {
-            "name":  src[1], "items": items,
-            "is_bd": src in BD_SOURCES,
-            "is_p":  src[0] in PRIORITY_INT_SOURCES,
-            "live":  len(items) > 0,
-        }
-        prog.progress((idx+1)/len(sel_all), text=f"{src[1]} ({idx+1}/{len(sel_all)})")
-    prog.empty()
+    # ── Build source list ───────────────────────────────────
+    ALL_SRCS = BD_SOURCES + INT_SOURCES
 
-    live_count = sum(1 for d in src_data.values() if d["live"])
+    # Init checkboxes in session state
+    for src in ALL_SRCS:
+        key = f"rd_{src[0]}"
+        if key not in st.session_state:
+            is_p = src[0] in PRIORITY_INT_SOURCES
+            st.session_state[key] = True if src in BD_SOURCES else is_p
 
-    # ── Render 4-column grid ────────────────────────────────
-    # Header
-    st.markdown(f"""
-<div style="display:flex;align-items:center;justify-content:space-between;
-  margin:4px 0 14px;padding:12px 18px;background:white;
-  border:1px solid #E8E4DC;border-radius:12px">
-  <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;font-size:16px;
-    color:#1A1A1A">📡 নিউজ রিডার
-    <span style="font-size:12px;font-weight:400;color:#888;margin-left:8px">
-      প্রথম ৫টি দেখাচ্ছে · scroll করে বাকি দেখুন
-    </span>
+    # ── Layout: Left sidebar + Right content ────────────────
+    left_col, right_col = st.columns([1, 4], gap="medium")
+
+    with left_col:
+        # Header
+        st.markdown(f"""
+<div style="padding:12px 4px 10px;border-bottom:1px solid #E8E4DC;margin-bottom:10px">
+  <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;font-size:15px;
+    color:#1A1A1A">Radar Settings</div>
+  <div style="font-size:10px;color:#888;margin-top:2px">TOGGLE DASHBOARD SOURCES</div>
+</div>""", unsafe_allow_html=True)
+
+        # Search
+        search_q = st.text_input("", placeholder="🔍 Search by name or URL...",
+                                  key="rd_search", label_visibility="collapsed")
+
+        # Quick buttons
+        qc1, qc2 = st.columns(2)
+        with qc1:
+            if st.button("✅ সব BD", key="rd_qbd", use_container_width=True):
+                for s in BD_SOURCES: st.session_state[f"rd_{s[0]}"] = True
+            if st.button("✅ সব INT", key="rd_qint", use_container_width=True):
+                for s in INT_SOURCES: st.session_state[f"rd_{s[0]}"] = True
+        with qc2:
+            if st.button("⭐ Priority", key="rd_qprio", use_container_width=True):
+                for s in ALL_SRCS:
+                    st.session_state[f"rd_{s[0]}"] = s[0] in PRIORITY_INT_SOURCES
+            if st.button("❌ সব বাদ", key="rd_qnone", use_container_width=True):
+                for s in ALL_SRCS: st.session_state[f"rd_{s[0]}"] = False
+
+        st.markdown('<div style="font-size:10px;color:#888;font-weight:700;margin:10px 0 6px;letter-spacing:.5px">🇧🇩 BANGLADESH</div>', unsafe_allow_html=True)
+
+        # Source list
+        for src in ALL_SRCS:
+            # Section divider
+            if src == INT_SOURCES[0]:
+                st.markdown('<div style="font-size:10px;color:#888;font-weight:700;margin:12px 0 6px;letter-spacing:.5px">🌍 INTERNATIONAL</div>', unsafe_allow_html=True)
+
+            sid  = src[0]
+            name = src[1]
+            url  = src[3] if len(src) > 3 else ""
+            is_p = sid in PRIORITY_INT_SOURCES
+            is_bd= src in BD_SOURCES
+
+            # Filter by search
+            if search_q and search_q.lower() not in name.lower() and search_q.lower() not in url.lower():
+                continue
+
+            # Color
+            if is_p:  logo_bg, flag = "#f59e0b", "⭐"
+            elif is_bd: logo_bg, flag = "#C8102E", "🇧🇩"
+            else:       logo_bg, flag = "#3b82f6", "🌍"
+
+            # Fetch status (check cache)
+            checked = st.session_state.get(f"rd_{sid}", True)
+
+            # Checkbox with custom styling
+            new_val = st.checkbox(
+                f"{flag} {name}",
+                value=checked,
+                key=f"rd_{sid}_cb"
+            )
+            st.session_state[f"rd_{sid}"] = new_val
+
+    # ── Right: Live News Dashboard ──────────────────────────
+    with right_col:
+        sel_all = [s for s in ALL_SRCS if st.session_state.get(f"rd_{s[0]}", True)]
+        sel_cnt = len(sel_all)
+
+        # Header bar
+        bdt_now2 = datetime.utcnow() + timedelta(hours=6)
+        st.markdown(f"""
+<div class="rd-news-header">
+  <div>
+    <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;
+      font-size:18px;color:#1A1A1A">Live News Dashboard</div>
+    <div style="font-size:11px;color:#888;margin-top:2px">
+      Displaying {sel_cnt} source columns
+    </div>
   </div>
-  <div style="font-size:11px;font-family:monospace;color:#888">
-    ✅ {live_count}/{len(sel_all)} LIVE ·
-    {bdt_now.strftime("%H:%M")} BDT ·
-    ↻ 5min
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="font-size:11px;color:#aaa;font-family:monospace">
+      ↻ {bdt_now2.strftime("%H:%M")} BDT · auto 5min
+    </div>
+    <div style="background:#C8102E;color:white;border-radius:8px;
+      padding:7px 16px;font-size:12px;font-weight:700">
+      ↺ Sync Feeds
+    </div>
   </div>
 </div>""", unsafe_allow_html=True)
 
-    # 4 cards per row using st.columns
-    COLS = 4
-    rows = [sel_all[i:i+COLS] for i in range(0, len(sel_all), COLS)]
+        if not sel_all:
+            st.warning("বাম পাশ থেকে সোর্স নির্বাচন করুন।")
+            st.stop()
 
-    for row_srcs in rows:
-        cols = st.columns(COLS)
-        for col_idx, src in enumerate(row_srcs):
-            d      = src_data.get(src[0], {})
-            sname  = d.get("name", src[1])
-            items  = d.get("items", [])
-            is_bd  = d.get("is_bd", True)
-            is_p   = d.get("is_p", False)
-            live   = d.get("live", False)
+        # Fetch all selected
+        prog = st.progress(0, text="Fetching feeds...")
+        src_items = {}
+        for idx, src in enumerate(sel_all):
+            fb = tuple(src[4]) if len(src) > 4 else ()
+            items = fetch_reader_src(src[2], src[3] if len(src) > 3 else "",
+                                     src[0], 20, fb)
+            src_items[src[0]] = {
+                "name": src[1], "items": items,
+                "is_bd": src in BD_SOURCES,
+                "is_p":  src[0] in PRIORITY_INT_SOURCES,
+                "live":  len(items) > 0,
+                "url":   src[3] if len(src) > 3 else "",
+            }
+            prog.progress((idx+1)/sel_cnt,
+                          text=f"Loading {src[1]}... ({idx+1}/{sel_cnt})")
+        prog.empty()
 
-            # Colors: cream/white theme (not dark)
-            if is_p:
-                hdr_bg  = "linear-gradient(135deg,#fffbeb,#fef9f0)"
-                border  = "#f59e0b"
-                dot_col = "#f59e0b"
-                flag    = "⭐"
-                badge   = '<span style="font-size:9px;background:#fef3c7;color:#b45309;border:1px solid #fde68a;padding:2px 7px;border-radius:100px;font-family:monospace;font-weight:700">⭐ PRIORITY</span>'
-            elif is_bd:
-                hdr_bg  = "linear-gradient(135deg,#fff5f6,#fff0f0)"
-                border  = "#C8102E"
-                dot_col = "#C8102E"
-                flag    = "🇧🇩"
-                badge   = '<span style="font-size:9px;background:#fef2f2;color:#C8102E;border:1px solid #fca5a5;padding:2px 7px;border-radius:100px;font-family:monospace;font-weight:700">🇧🇩 BD</span>'
-            else:
-                hdr_bg  = "linear-gradient(135deg,#eff6ff,#f0f7ff)"
-                border  = "#3b82f6"
-                dot_col = "#3b82f6"
-                flag    = "🌍"
-                badge   = '<span style="font-size:9px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:2px 7px;border-radius:100px;font-family:monospace;font-weight:700">🌍 INT</span>'
+        live_cnt = sum(1 for d in src_items.values() if d["live"])
 
-            live_badge = (
-                '<span style="font-size:9px;background:#f0fdf4;color:#16a34a;'
-                'border:1px solid #86efac;padding:2px 6px;border-radius:100px;'
-                'font-family:monospace;font-weight:700">● LIVE</span>'
-                if live else
-                '<span style="font-size:9px;background:#f9fafb;color:#9ca3af;'
-                'border:1px solid #e5e7eb;padding:2px 6px;border-radius:100px;'
-                'font-family:monospace;font-weight:700">○ OFF</span>'
-            )
+        # 4 columns grid
+        COLS = 4
+        rows = [sel_all[i:i+COLS] for i in range(0, len(sel_all), COLS)]
 
-            # Build news items — first 5 visible, rest in scroll
-            news_rows = ""
-            if items:
-                for i, item in enumerate(items):
-                    title  = item.get("title","")
-                    lk     = item.get("link","")
-                    t_ago  = time_ago_bn(item.get("pub_dt"))
-                    t_html = f'<div style="font-size:9px;color:#aaa;font-family:monospace;margin-top:2px">⏱ {t_ago}</div>' if t_ago else ""
+        for row in rows:
+            cols = st.columns(len(row))
+            for ci, src in enumerate(row):
+                d      = src_items[src[0]]
+                sname  = d["name"]
+                items  = d["items"]
+                is_bd  = d["is_bd"]
+                is_p   = d["is_p"]
+                live   = d["live"]
+                surl   = d["url"]
 
-                    dot = f'<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:{dot_col};margin-right:6px;flex-shrink:0;margin-top:6px"></span>'
+                if is_p:
+                    bdr = "#f59e0b"; hdr_bg = "#fffbeb"; flag = "⭐"
+                    bdg = '<span class="rd-badge-prio">PRIORITY</span>'
+                elif is_bd:
+                    bdr = "#C8102E"; hdr_bg = "#fff5f6"; flag = "🇧🇩"
+                    bdg = '<span class="rd-badge-bd">BD</span>'
+                else:
+                    bdr = "#3b82f6"; hdr_bg = "#eff6ff"; flag = "🌍"
+                    bdg = '<span class="rd-badge-int">INT</span>'
 
-                    if lk:
-                        title_el = f'<a href="{lk}" target="_blank" style="font-family:\'Noto Serif Bengali\',serif;font-size:12.5px;font-weight:700;color:#1A1A1A;line-height:1.45;text-decoration:none;flex:1;display:block" onmouseover="this.style.color=\'{border}\'" onmouseout="this.style.color=\'#1A1A1A\'">{title}</a>'
-                    else:
-                        title_el = f'<span style="font-family:\'Noto Serif Bengali\',serif;font-size:12.5px;font-weight:700;color:#1A1A1A;line-height:1.45;flex:1;display:block">{title}</span>'
+                live_html = (
+                    '<span class="rd-live-dot on" title="Live"></span>'
+                    if live else
+                    '<span class="rd-live-dot off" title="Offline"></span>'
+                )
 
-                    item_style = (
-                        "padding:8px 0;border-bottom:1px solid #f0ece4;"
-                        + ("" if i < len(items)-1 else "border-bottom:none;")
-                    )
+                # Build news items
+                news_html = ""
+                if items:
+                    for item in items[:20]:
+                        title = item.get("title","")
+                        lk    = item.get("link","")
+                        t_ago = time_ago_bn(item.get("pub_dt"))
 
-                    news_rows += f'<div style="{item_style}"><div style="display:flex;align-items:flex-start;gap:4px">{dot}{title_el}</div>{t_html}</div>'
-            else:
-                news_rows = '<div style="text-align:center;padding:30px 0;color:#aaa;font-size:12px">❌ ফিড পাওয়া যায়নি<br><span style="font-size:10px">RSS connect ব্যর্থ</span></div>'
+                        # Format date like image: "Jul 12, 2026, 04:34:27 PM"
+                        pub_dt = item.get("pub_dt")
+                        if pub_dt:
+                            bdt_pub = pub_dt + timedelta(hours=6)
+                            date_str = bdt_pub.strftime("%b %d, %Y, %I:%M:%S %p")
+                        else:
+                            date_str = ""
 
-            # Card HTML
-            card_html = f"""
-<div style="background:white;border:2px solid {border};border-radius:14px;
-  overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);height:100%">
+                        t_el = f'<div class="rd-news-time">{date_str}</div>' if date_str else (f'<div class="rd-news-time">⏱ {t_ago}</div>' if t_ago else "")
 
-  <div style="background:{hdr_bg};padding:10px 14px;border-bottom:1px solid #f0ece4;">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
-      <div style="font-family:'Noto Serif Bengali',serif;font-size:13px;font-weight:800;
-        color:#1A1A1A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-        flex:1;letter-spacing:.3px">{flag} {sname}</div>
-      {live_badge}
-    </div>
-    <div>{badge}</div>
-  </div>
+                        if lk:
+                            t_el += f'<a href="{lk}" target="_blank" style="font-size:10px;color:#C8102E;text-decoration:none;font-weight:600">Read →</a>'
 
-  <div style="height:360px;overflow-y:auto;padding:4px 12px 8px;
-    scrollbar-width:thin;scrollbar-color:#E8E4DC transparent">
-    {news_rows}
-  </div>
-</div>"""
+                        if lk:
+                            title_el = f'<a href="{lk}" target="_blank" class="rd-news-title">{title}</a>'
+                        else:
+                            title_el = f'<span class="rd-news-title" style="cursor:default">{title}</span>'
 
-            with cols[col_idx]:
-                st.markdown(card_html, unsafe_allow_html=True)
-                st.write("")  # spacing
+                        news_html += f'<div class="rd-news-row">{title_el}{t_el}</div>'
+                else:
+                    news_html = '<div style="padding:30px 0;text-align:center;color:#aaa;font-size:12px">❌ Feed unavailable</div>'
 
-        # empty columns if last row is incomplete
-        for empty_idx in range(len(row_srcs), COLS):
-            with cols[empty_idx]:
-                st.empty()
+                card = (
+                    f'<div class="rd-col-card" style="border-color:{bdr}">'
+                    f'<div class="rd-col-header" style="background:{hdr_bg}">'
+                    f'<div style="width:30px;height:30px;border-radius:7px;background:{bdr};'
+                    f'display:flex;align-items:center;justify-content:center;'
+                    f'font-size:14px;flex-shrink:0">{flag}</div>'
+                    f'<span class="rd-col-name">{sname}</span>'
+                    f'{live_html} {bdg}'
+                    f'</div>'
+                    f'<div class="rd-col-body">{news_html}</div>'
+                    f'</div>'
+                )
+
+                with cols[ci]:
+                    st.markdown(card, unsafe_allow_html=True)
+                    st.write("")
+
+            # fill empty columns in last row
+            for ei in range(len(row), COLS):
+                pass
 
 
 with tab_stats:

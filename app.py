@@ -2361,286 +2361,318 @@ with tab_reader:
 
     # ── CSS ────────────────────────────────────────────────
     st.markdown("""<style>
-.rd-sidebar{background:white;border-right:1px solid #E8E4DC;padding:14px 10px;
-  height:calc(100vh - 140px);overflow-y:auto;position:sticky;top:0;}
-.rd-src-item{display:flex;align-items:center;gap:10px;padding:10px 12px;
-  border-radius:10px;cursor:pointer;margin-bottom:4px;border:1.5px solid transparent;
-  background:white;transition:all .15s;}
-.rd-src-item:hover{background:#fff5f6;border-color:#fca5a5;}
-.rd-src-item.active{background:#fff0f0;border-color:#C8102E;}
-.rd-src-logo{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;
-  justify-content:center;font-size:16px;font-weight:900;color:white;flex-shrink:0;}
-.rd-src-info{flex:1;min-width:0;}
-.rd-src-name{font-size:12.5px;font-weight:700;color:#1A1A1A;
+/* Left sidebar source items */
+.rd-src-item{display:flex;align-items:center;gap:8px;padding:8px 10px;
+  border-radius:8px;cursor:pointer;margin-bottom:3px;
+  border:1.5px solid #E8E4DC;background:white;transition:all .15s;}
+.rd-src-item:hover{border-color:#C8102E;background:#fff5f6;}
+.rd-src-logo{width:32px;height:32px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;color:white;flex-shrink:0;}
+.rd-src-name{font-size:12px;font-weight:700;color:#1A1A1A;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rd-src-url{font-size:9.5px;color:#aaa;white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;font-family:monospace;}
-.rd-live-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.rd-live-dot.on{background:#16a34a;}
-.rd-live-dot.off{background:#d1d5db;}
+.rd-src-url{font-size:9px;color:#aaa;font-family:monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rd-dot-live{display:inline-block;width:8px;height:8px;
+  border-radius:50%;background:#16a34a;flex-shrink:0;}
+.rd-dot-off{display:inline-block;width:8px;height:8px;
+  border-radius:50%;background:#d1d5db;flex-shrink:0;}
 
-/* Right side news cards */
-.rd-news-header{background:white;border:1px solid #E8E4DC;border-radius:14px;
-  padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;
-  justify-content:space-between;}
-.rd-col-card{background:white;border:2px solid #E8E4DC;border-radius:14px;
-  overflow:hidden;height:520px;display:flex;flex-direction:column;}
-.rd-col-header{padding:11px 14px;display:flex;align-items:center;gap:8px;
+/* News column cards */
+.rd-col{background:white;border:2px solid #E8E4DC;border-radius:14px;
+  overflow:hidden;display:flex;flex-direction:column;height:560px;}
+.rd-col-hdr{padding:10px 14px;display:flex;align-items:center;gap:8px;
   border-bottom:1px solid #f0ece4;flex-shrink:0;}
+.rd-col-logo{width:28px;height:28px;border-radius:6px;display:flex;
+  align-items:center;justify-content:center;font-size:12px;
+  font-weight:900;color:white;flex-shrink:0;}
 .rd-col-name{font-family:'Noto Serif Bengali',serif;font-size:13px;
-  font-weight:800;color:#1A1A1A;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.rd-col-body{flex:1;overflow-y:auto;padding:6px 12px;
+  font-weight:800;color:#1A1A1A;flex:1;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.rd-col-body{flex:1;overflow-y:auto;padding:4px 12px 8px;
   scrollbar-width:thin;scrollbar-color:#E8E4DC transparent;}
 .rd-col-body::-webkit-scrollbar{width:4px;}
 .rd-col-body::-webkit-scrollbar-thumb{background:#E8E4DC;border-radius:2px;}
-.rd-news-row{padding:9px 0;border-bottom:1px solid #f5f0ea;}
-.rd-news-row:last-child{border-bottom:none;}
-.rd-news-title{font-family:'Noto Serif Bengali',serif;font-size:12.5px;
-  font-weight:700;color:#1A1A1A;line-height:1.45;text-decoration:none;display:block;}
-.rd-news-title:hover{color:#C8102E;}
-.rd-news-time{font-size:9.5px;color:#aaa;font-family:monospace;margin-top:3px;}
-.rd-badge-bd{font-size:9px;background:#fef2f2;color:#C8102E;
-  border:1px solid #fca5a5;padding:1px 7px;border-radius:100px;font-weight:700;}
-.rd-badge-int{font-size:9px;background:#eff6ff;color:#1d4ed8;
-  border:1px solid #bfdbfe;padding:1px 7px;border-radius:100px;font-weight:700;}
-.rd-badge-prio{font-size:9px;background:#fffbeb;color:#b45309;
-  border:1px solid #fde68a;padding:1px 7px;border-radius:100px;font-weight:700;}
-.rd-sync-btn{display:inline-flex;align-items:center;gap:6px;
-  background:#C8102E;color:white;border:none;border-radius:8px;
-  padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;}
+.rd-item{padding:9px 0;border-bottom:1px solid #f5f0ea;}
+.rd-item:last-child{border-bottom:none;}
+.rd-item-title{font-family:'Noto Serif Bengali',serif;font-size:13px;
+  font-weight:700;color:#1A1A1A;line-height:1.5;text-decoration:none;display:block;}
+.rd-item-title:hover{color:#C8102E;}
+.rd-item-date{font-size:10px;color:#888;margin-top:3px;display:block;}
+.rd-item-read{font-size:10px;color:#C8102E;font-weight:700;
+  text-decoration:none;display:inline-block;margin-top:3px;}
+.rd-item-read:hover{text-decoration:underline;}
 </style>""", unsafe_allow_html=True)
 
-    # ── Fetch function (tuple fallbacks — cacheable) ────────
+    # ── Fetch function ──────────────────────────────────────
     @st.cache_data(ttl=60, show_spinner=False)
-    def fetch_reader_src(rss_url, web_url, src_id, max_n=20, fallbacks=()):
-        """Fetch with fallback chain. fallbacks must be tuple for caching."""
-        domain   = web_url.replace("https://","").replace("http://","").split("/")[0]
-        all_urls = [rss_url] + list(fallbacks) + [
-            f"https://news.google.com/rss/search?q=site:{domain}&hl=bn&gl=BD&ceid=BD:bn",
-            f"https://news.google.com/rss/search?q=site:{domain}&hl=en&gl=BD&ceid=BD:en",
-        ]
+    def fetch_reader_src(rss_url, web_url, src_id, fallbacks=()):
+        """Fetch with fallback chain. Returns list of news items."""
+        domain   = web_url.replace("https://","").replace("http://","").split("/")[0] if web_url else ""
+        all_urls = [rss_url] + list(fallbacks)
+        if domain:
+            all_urls += [
+                f"https://news.google.com/rss/search?q=site:{domain}&hl=bn&gl=BD&ceid=BD:bn",
+                f"https://news.google.com/rss/search?q=site:{domain}&hl=en&gl=BD&ceid=BD:en",
+            ]
         for url in all_urls:
             try:
-                raw = fetch_rss(url, max_n * 2)
+                raw = fetch_rss(url, 60)
                 if raw:
                     with_dt = sorted(
                         [i for i in raw if i.get("pub_dt")],
                         key=lambda x: x.get("age_hours", 9999)
                     )
                     no_dt = [i for i in raw if not i.get("pub_dt")]
-                    result = (with_dt + no_dt)[:max_n]
+                    result = (with_dt + no_dt)[:20]
                     if result:
                         return result
             except Exception:
                 continue
         return []
 
-    # ── Build source list ───────────────────────────────────
-    ALL_SRCS = BD_SOURCES + INT_SOURCES
+    # ── Init: NO sources selected by default ───────────────
+    # Only show sources that user manually clicks
+    if "rd_init_done" not in st.session_state:
+        # First time: all OFF
+        for src in BD_SOURCES + INT_SOURCES:
+            st.session_state[f"rd_{src[0]}"] = False
+        st.session_state["rd_init_done"] = True
 
-    # Init checkboxes in session state
-    for src in ALL_SRCS:
-        key = f"rd_{src[0]}"
-        if key not in st.session_state:
-            is_p = src[0] in PRIORITY_INT_SOURCES
-            st.session_state[key] = True if src in BD_SOURCES else is_p
-
-    # ── Layout: Left sidebar + Right content ────────────────
+    # ── Two column layout ───────────────────────────────────
     left_col, right_col = st.columns([1, 4], gap="medium")
 
+    # ── LEFT: Radar Settings ────────────────────────────────
     with left_col:
-        # Header
-        st.markdown(f"""
-<div style="padding:12px 4px 10px;border-bottom:1px solid #E8E4DC;margin-bottom:10px">
-  <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;font-size:15px;
-    color:#1A1A1A">Radar Settings</div>
-  <div style="font-size:10px;color:#888;margin-top:2px">TOGGLE DASHBOARD SOURCES</div>
+        st.markdown("""
+<div style="padding:4px 0 12px;border-bottom:1px solid #E8E4DC;margin-bottom:10px">
+  <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;
+    font-size:16px;color:#1A1A1A">Radar Settings</div>
+  <div style="font-size:10px;color:#888;margin-top:2px;font-weight:600;
+    letter-spacing:.5px">TOGGLE DASHBOARD SOURCES</div>
 </div>""", unsafe_allow_html=True)
 
-        # Search
+        # Search box
         search_q = st.text_input("", placeholder="🔍 Search by name or URL...",
                                   key="rd_search", label_visibility="collapsed")
 
         # Quick buttons
-        qc1, qc2 = st.columns(2)
-        with qc1:
-            if st.button("✅ সব BD", key="rd_qbd", use_container_width=True):
-                for s in BD_SOURCES: st.session_state[f"rd_{s[0]}"] = True
-            if st.button("✅ সব INT", key="rd_qint", use_container_width=True):
-                for s in INT_SOURCES: st.session_state[f"rd_{s[0]}"] = True
-        with qc2:
+        qb1, qb2 = st.columns(2)
+        with qb1:
+            if st.button("✅ সব BD",    key="rd_qbd",   use_container_width=True):
+                for s in BD_SOURCES:
+                    st.session_state[f"rd_{s[0]}"] = True
+                st.rerun()
+            if st.button("✅ সব INT",   key="rd_qint",  use_container_width=True):
+                for s in INT_SOURCES:
+                    st.session_state[f"rd_{s[0]}"] = True
+                st.rerun()
+        with qb2:
             if st.button("⭐ Priority", key="rd_qprio", use_container_width=True):
-                for s in ALL_SRCS:
-                    st.session_state[f"rd_{s[0]}"] = s[0] in PRIORITY_INT_SOURCES
-            if st.button("❌ সব বাদ", key="rd_qnone", use_container_width=True):
-                for s in ALL_SRCS: st.session_state[f"rd_{s[0]}"] = False
+                for s in BD_SOURCES + INT_SOURCES:
+                    st.session_state[f"rd_{s[0]}"] = (s[0] in PRIORITY_INT_SOURCES)
+                st.rerun()
+            if st.button("❌ সব বাদ",  key="rd_qnone", use_container_width=True):
+                for s in BD_SOURCES + INT_SOURCES:
+                    st.session_state[f"rd_{s[0]}"] = False
+                st.rerun()
 
-        st.markdown('<div style="font-size:10px;color:#888;font-weight:700;margin:10px 0 6px;letter-spacing:.5px">🇧🇩 BANGLADESH</div>', unsafe_allow_html=True)
+        st.write("")
 
-        # Source list
-        for src in ALL_SRCS:
-            # Section divider
-            if src == INT_SOURCES[0]:
-                st.markdown('<div style="font-size:10px;color:#888;font-weight:700;margin:12px 0 6px;letter-spacing:.5px">🌍 INTERNATIONAL</div>', unsafe_allow_html=True)
+        # ── BD Sources ──────────────────────────────────────
+        st.markdown('<div style="font-size:10px;font-weight:800;color:#C8102E;'
+                    'letter-spacing:1px;margin-bottom:6px">🇧🇩 BANGLADESH</div>',
+                    unsafe_allow_html=True)
 
-            sid  = src[0]
-            name = src[1]
-            url  = src[3] if len(src) > 3 else ""
-            is_p = sid in PRIORITY_INT_SOURCES
-            is_bd= src in BD_SOURCES
-
-            # Filter by search
-            if search_q and search_q.lower() not in name.lower() and search_q.lower() not in url.lower():
+        for src in BD_SOURCES:
+            sid  = src[0]; sname = src[1]
+            surl = src[3] if len(src) > 3 else ""
+            if search_q and search_q.lower() not in sname.lower() and search_q.lower() not in surl.lower():
                 continue
+            cur = st.session_state.get(f"rd_{sid}", False)
+            new = st.checkbox(sname, value=cur, key=f"rd_{sid}_cb")
+            if new != cur:
+                st.session_state[f"rd_{sid}"] = new
+                st.rerun()
 
-            # Color
-            if is_p:  logo_bg, flag = "#f59e0b", "⭐"
-            elif is_bd: logo_bg, flag = "#C8102E", "🇧🇩"
-            else:       logo_bg, flag = "#3b82f6", "🌍"
+        # ── INT Sources ─────────────────────────────────────
+        st.write("")
+        st.markdown('<div style="font-size:10px;font-weight:800;color:#1d4ed8;'
+                    'letter-spacing:1px;margin-bottom:6px">🌍 INTERNATIONAL</div>',
+                    unsafe_allow_html=True)
 
-            # Fetch status (check cache)
-            checked = st.session_state.get(f"rd_{sid}", True)
+        for src in INT_SOURCES:
+            sid  = src[0]; sname = src[1]
+            surl = src[3] if len(src) > 3 else ""
+            is_p = sid in PRIORITY_INT_SOURCES
+            if search_q and search_q.lower() not in sname.lower() and search_q.lower() not in surl.lower():
+                continue
+            cur  = st.session_state.get(f"rd_{sid}", False)
+            label = ("⭐ " if is_p else "") + sname
+            new  = st.checkbox(label, value=cur, key=f"rd_{sid}_cb")
+            if new != cur:
+                st.session_state[f"rd_{sid}"] = new
+                st.rerun()
 
-            # Checkbox with custom styling
-            new_val = st.checkbox(
-                f"{flag} {name}",
-                value=checked,
-                key=f"rd_{sid}_cb"
-            )
-            st.session_state[f"rd_{sid}"] = new_val
-
-    # ── Right: Live News Dashboard ──────────────────────────
+    # ── RIGHT: Live News Dashboard ──────────────────────────
     with right_col:
-        sel_all = [s for s in ALL_SRCS if st.session_state.get(f"rd_{s[0]}", True)]
-        sel_cnt = len(sel_all)
 
-        # Header bar
-        bdt_now2 = datetime.utcnow() + timedelta(hours=6)
+        sel_all = [s for s in BD_SOURCES + INT_SOURCES
+                   if st.session_state.get(f"rd_{s[0]}", False)]
+        bdt2 = datetime.utcnow() + timedelta(hours=6)
+
+        # Header
         st.markdown(f"""
-<div class="rd-news-header">
+<div style="display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;background:white;border:1px solid #E8E4DC;
+  border-radius:14px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)">
   <div>
     <div style="font-family:'Noto Serif Bengali',serif;font-weight:800;
-      font-size:18px;color:#1A1A1A">Live News Dashboard</div>
+      font-size:20px;color:#1A1A1A">Live News Dashboard</div>
     <div style="font-size:11px;color:#888;margin-top:2px">
-      Displaying {sel_cnt} source columns
+      Displaying {len(sel_all)} source columns
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:12px">
     <div style="font-size:11px;color:#aaa;font-family:monospace">
-      ↻ {bdt_now2.strftime("%H:%M")} BDT · auto 5min
+      ↻ {bdt2.strftime("%H:%M")} BDT · auto 5min
     </div>
     <div style="background:#C8102E;color:white;border-radius:8px;
-      padding:7px 16px;font-size:12px;font-weight:700">
+      padding:8px 18px;font-size:12px;font-weight:700;
+      display:flex;align-items:center;gap:6px">
       ↺ Sync Feeds
     </div>
   </div>
 </div>""", unsafe_allow_html=True)
 
         if not sel_all:
-            st.warning("বাম পাশ থেকে সোর্স নির্বাচন করুন।")
-            st.stop()
+            st.markdown("""
+<div style="background:white;border:2px dashed #E8E4DC;border-radius:16px;
+  padding:60px 40px;text-align:center;color:#888;margin-top:20px">
+  <div style="font-size:48px;margin-bottom:16px">📡</div>
+  <div style="font-family:'Noto Serif Bengali',serif;font-size:18px;
+    font-weight:800;color:#1A1A1A;margin-bottom:8px">
+    বাম পাশ থেকে সোর্স নির্বাচন করুন
+  </div>
+  <div style="font-size:13px;line-height:1.7">
+    Radar Settings থেকে যে সোর্সগুলো দেখতে চান সেগুলো tick করুন।<br>
+    প্রতিটি সোর্স আলাদা কলামে দেখাবে।
+  </div>
+</div>""", unsafe_allow_html=True)
+        else:
+            # Fetch all selected sources
+            prog = st.progress(0, text="Fetching...")
+            src_data = {}
+            for idx, src in enumerate(sel_all):
+                fb = tuple(src[4]) if len(src) > 4 else ()
+                items = fetch_reader_src(
+                    src[2], src[3] if len(src) > 3 else "", src[0], fb)
+                src_data[src[0]] = {
+                    "name":  src[1],
+                    "items": items,
+                    "is_bd": src in BD_SOURCES,
+                    "is_p":  src[0] in PRIORITY_INT_SOURCES,
+                    "live":  len(items) > 0,
+                }
+                prog.progress((idx+1)/len(sel_all),
+                              text=f"Loading {src[1]}...")
+            prog.empty()
 
-        # Fetch all selected
-        prog = st.progress(0, text="Fetching feeds...")
-        src_items = {}
-        for idx, src in enumerate(sel_all):
-            fb = tuple(src[4]) if len(src) > 4 else ()
-            items = fetch_reader_src(src[2], src[3] if len(src) > 3 else "",
-                                     src[0], 20, fb)
-            src_items[src[0]] = {
-                "name": src[1], "items": items,
-                "is_bd": src in BD_SOURCES,
-                "is_p":  src[0] in PRIORITY_INT_SOURCES,
-                "live":  len(items) > 0,
-                "url":   src[3] if len(src) > 3 else "",
-            }
-            prog.progress((idx+1)/sel_cnt,
-                          text=f"Loading {src[1]}... ({idx+1}/{sel_cnt})")
-        prog.empty()
+            # Render 4-col grid
+            COLS = 4
+            rows = [sel_all[i:i+COLS] for i in range(0, len(sel_all), COLS)]
 
-        live_cnt = sum(1 for d in src_items.values() if d["live"])
+            for row in rows:
+                cols = st.columns(COLS, gap="small")
 
-        # 4 columns grid
-        COLS = 4
-        rows = [sel_all[i:i+COLS] for i in range(0, len(sel_all), COLS)]
+                for ci, src in enumerate(row):
+                    d     = src_data[src[0]]
+                    sname = d["name"]
+                    items = d["items"]
+                    is_bd = d["is_bd"]
+                    is_p  = d["is_p"]
+                    live  = d["live"]
 
-        for row in rows:
-            cols = st.columns(len(row))
-            for ci, src in enumerate(row):
-                d      = src_items[src[0]]
-                sname  = d["name"]
-                items  = d["items"]
-                is_bd  = d["is_bd"]
-                is_p   = d["is_p"]
-                live   = d["live"]
-                surl   = d["url"]
+                    # Colors
+                    if is_p:
+                        bdr="#f59e0b"; hbg="#fffbeb"; logo_bg="#f59e0b"; flag="⭐"
+                        bdg='<span style="font-size:9px;background:#fffbeb;color:#b45309;border:1px solid #fde68a;padding:1px 7px;border-radius:100px;font-weight:700">PRIORITY</span>'
+                    elif is_bd:
+                        bdr="#C8102E"; hbg="#fff5f6"; logo_bg="#C8102E"; flag="BD"
+                        bdg='<span style="font-size:9px;background:#fef2f2;color:#C8102E;border:1px solid #fca5a5;padding:1px 7px;border-radius:100px;font-weight:700">BD</span>'
+                    else:
+                        bdr="#3b82f6"; hbg="#eff6ff"; logo_bg="#3b82f6"; flag="INT"
+                        bdg='<span style="font-size:9px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:1px 7px;border-radius:100px;font-weight:700">INT</span>'
 
-                if is_p:
-                    bdr = "#f59e0b"; hdr_bg = "#fffbeb"; flag = "⭐"
-                    bdg = '<span class="rd-badge-prio">PRIORITY</span>'
-                elif is_bd:
-                    bdr = "#C8102E"; hdr_bg = "#fff5f6"; flag = "🇧🇩"
-                    bdg = '<span class="rd-badge-bd">BD</span>'
-                else:
-                    bdr = "#3b82f6"; hdr_bg = "#eff6ff"; flag = "🌍"
-                    bdg = '<span class="rd-badge-int">INT</span>'
+                    live_el = (
+                        '<span class="rd-dot-live"></span>'
+                        if live else
+                        '<span class="rd-dot-off"></span>'
+                    )
 
-                live_html = (
-                    '<span class="rd-live-dot on" title="Live"></span>'
-                    if live else
-                    '<span class="rd-live-dot off" title="Offline"></span>'
-                )
+                    # Build news rows
+                    news_html = ""
+                    if items:
+                        for item in items[:20]:
+                            title  = item.get("title","")
+                            lk     = item.get("link","")
+                            pub_dt = item.get("pub_dt")
 
-                # Build news items
-                news_html = ""
-                if items:
-                    for item in items[:20]:
-                        title = item.get("title","")
-                        lk    = item.get("link","")
-                        t_ago = time_ago_bn(item.get("pub_dt"))
+                            # Date string in BDT
+                            if pub_dt:
+                                try:
+                                    bdt_pub  = pub_dt + timedelta(hours=6)
+                                    date_str = bdt_pub.strftime("%b %d, %Y, %I:%M %p")
+                                except Exception:
+                                    date_str = ""
+                            else:
+                                date_str = ""
 
-                        # Format date like image: "Jul 12, 2026, 04:34:27 PM"
-                        pub_dt = item.get("pub_dt")
-                        if pub_dt:
-                            bdt_pub = pub_dt + timedelta(hours=6)
-                            date_str = bdt_pub.strftime("%b %d, %Y, %I:%M:%S %p")
-                        else:
-                            date_str = ""
+                            t_el = (f'<span class="rd-item-date">'
+                                    f'{date_str}</span>') if date_str else ""
 
-                        t_el = f'<div class="rd-news-time">{date_str}</div>' if date_str else (f'<div class="rd-news-time">⏱ {t_ago}</div>' if t_ago else "")
+                            if lk:
+                                title_html = (f'<a href="{lk}" target="_blank" '
+                                              f'class="rd-item-title">{title}</a>')
+                                read_html  = (f'<a href="{lk}" target="_blank" '
+                                              f'class="rd-item-read">Read →</a>')
+                            else:
+                                title_html = (f'<span class="rd-item-title" '
+                                              f'style="cursor:default">{title}</span>')
+                                read_html  = ""
 
-                        if lk:
-                            t_el += f'<a href="{lk}" target="_blank" style="font-size:10px;color:#C8102E;text-decoration:none;font-weight:600">Read →</a>'
+                            news_html += (f'<div class="rd-item">'
+                                          f'{title_html}{t_el}{read_html}'
+                                          f'</div>')
+                    else:
+                        news_html = (
+                            '<div style="padding:40px 0;text-align:center;'
+                            'color:#aaa;font-size:12px">'
+                            '❌ Feed unavailable</div>'
+                        )
 
-                        if lk:
-                            title_el = f'<a href="{lk}" target="_blank" class="rd-news-title">{title}</a>'
-                        else:
-                            title_el = f'<span class="rd-news-title" style="cursor:default">{title}</span>'
+                    card = (
+                        f'<div class="rd-col" style="border-color:{bdr}">'
+                        # Header
+                        f'<div class="rd-col-hdr" style="background:{hbg}">'
+                        f'<div class="rd-col-logo" style="background:{logo_bg}">'
+                        f'{flag}</div>'
+                        f'<span class="rd-col-name">{sname}</span>'
+                        f'{live_el}&nbsp;{bdg}'
+                        f'</div>'
+                        # Body
+                        f'<div class="rd-col-body">{news_html}</div>'
+                        f'</div>'
+                    )
 
-                        news_html += f'<div class="rd-news-row">{title_el}{t_el}</div>'
-                else:
-                    news_html = '<div style="padding:30px 0;text-align:center;color:#aaa;font-size:12px">❌ Feed unavailable</div>'
+                    with cols[ci]:
+                        st.markdown(card, unsafe_allow_html=True)
+                        st.write("")
 
-                card = (
-                    f'<div class="rd-col-card" style="border-color:{bdr}">'
-                    f'<div class="rd-col-header" style="background:{hdr_bg}">'
-                    f'<div style="width:30px;height:30px;border-radius:7px;background:{bdr};'
-                    f'display:flex;align-items:center;justify-content:center;'
-                    f'font-size:14px;flex-shrink:0">{flag}</div>'
-                    f'<span class="rd-col-name">{sname}</span>'
-                    f'{live_html} {bdg}'
-                    f'</div>'
-                    f'<div class="rd-col-body">{news_html}</div>'
-                    f'</div>'
-                )
-
-                with cols[ci]:
-                    st.markdown(card, unsafe_allow_html=True)
-                    st.write("")
-
-            # fill empty columns in last row
-            for ei in range(len(row), COLS):
-                pass
+                # Empty columns in last row
+                for ei in range(len(row), COLS):
+                    with cols[ei]:
+                        st.empty()
 
 
 with tab_stats:

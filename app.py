@@ -598,6 +598,13 @@ def filter_recent(items: list, hours: int = 6) -> list:
 # ═════════════════════════════════════════════════════
 
 @st.cache_data(ttl=60, show_spinner=False)
+def clean_gn_title(title: str) -> str:
+    """Remove ' - Source Name' suffix from Google News titles."""
+    if not title:
+        return title
+    parts = title.rsplit(" - ", 1)
+    return parts[0].strip() if len(parts) == 2 else title
+
 def fetch_google_news(topic: str = "বাংলাদেশ", max_items: int = 20) -> list:
     encoded = urllib.parse.quote(topic)
     urls = [
@@ -1254,23 +1261,35 @@ with tab_news:
                     _time_html = (
                         ('<span style="font-size:10px;color:#aaa;font-family:monospace">⏱ ' + t_ago + '</span>')
                     ) if t_ago else ""
-                    _a_open  = f'<a href="{lk}" target="_blank" style="text-decoration:none;color:inherit">' if lk else ""
-                    _a_close = "</a>" if lk else ""
-                    st.markdown(f"""
-<div class="news-card">
-  <div class="news-card-emoji">{em}</div>
-  <div class="news-card-body">
-    <div class="news-card-meta">
-      <span class="news-card-cat">{key[:10]}</span>
-      <span style="color:#ddd">·</span>
-      <span style="font-size:11px;color:#888">{src}</span>
-      {_time_html}
-    </div>
-    {_a_open}<div class="news-card-title">{item['title']}</div>{_a_close}
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">{badges}</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
+                    _clean_title = clean_gn_title(item["title"])
+                    if lk:
+                        _title_el = (
+                            '<a href="' + lk + '" target="_blank" '
+                            'style="font-family:Noto Serif Bengali,serif;'
+                            'font-size:14.5px;font-weight:700;color:#1A1A1A;'
+                            'line-height:1.45;text-decoration:none;display:block;'
+                            'margin-bottom:6px">' + _clean_title + '</a>'
+                        )
+                    else:
+                        _title_el = (
+                            '<div class="news-card-title">' + _clean_title + '</div>'
+                        )
+                    st.markdown(
+                        '<div class="news-card">'
+                        '<div class="news-card-emoji">' + em + '</div>'
+                        '<div class="news-card-body">'
+                        '<div class="news-card-meta">'
+                        '<span class="news-card-cat">' + key[:8] + '</span>'
+                        '<span style="color:#ddd">·</span>'
+                        '<span style="font-size:11px;color:#888">' + src[:20] + '</span>'
+                        + _time_html +
+                        '</div>'
+                        + _title_el +
+                        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">' + badges + '</div>'
+                        '</div>'
+                        '</div>',
+                        unsafe_allow_html=True
+                    )
                     if item["title"] not in st.session_state.read_history:
                         st.session_state.read_history.insert(0, item["title"])
 
@@ -1995,14 +2014,28 @@ with tab_coverage:
             sid  = src[0]; sname = src[1]; srss = src[2]
             surl = src[3] if len(src) > 3 else ""
             _fb   = tuple(src[4]) if len(src) > 4 else ()
+            domain = surl.replace("https://","").replace("http://","").split("/")[0]
+            # Try smart_fetch first, then Google News fallback
             items = smart_fetch(srss, surl, max_per, 6, list(_fb))
+            if not items:
+                gn_bn = f"https://news.google.com/rss/search?q=site:{domain}&hl=bn&gl=BD&ceid=BD:bn"
+                gn_en = f"https://news.google.com/rss/search?q=site:{domain}&hl=en&gl=BD&ceid=BD:en"
+                for gn_url in [gn_bn, gn_en]:
+                    try:
+                        raw = fetch_rss(gn_url, max_per * 2)
+                        if raw:
+                            items = raw[:max_per]
+                            break
+                    except Exception:
+                        pass
             # Extra filter: reject video / bad links
             items = [i for i in items if i.get("link","").count("/") >= 3]
             result[sid] = {
                 "name":      sname,
                 "url":       surl,
-                "headlines": [i["title"] for i in items],
-                "links":     [i.get("link","") for i in items],
+                "headlines": [i["title"]          for i in items],
+                "links":     [i.get("link","")    for i in items],
+                "pub_dts":   [i.get("pub_dt")     for i in items],
                 "live":      len(items) > 0,
                 "is_bd":     src in BD_SOURCES,
                 "is_priority": sid in PRIORITY_INT_SOURCES,
@@ -2407,26 +2440,43 @@ with tab_reader:
     # ── Fetch function ──────────────────────────────────────
     @st.cache_data(ttl=60, show_spinner=False)
     def fetch_reader_src(rss_url, web_url, src_id, fallbacks=()):
-        """Fetch with fallback chain. Returns list of news items."""
-        domain   = web_url.replace("https://","").replace("http://","").split("/")[0] if web_url else ""
-        all_urls = [rss_url] + list(fallbacks)
+        """
+        Fetch with multi-level fallback:
+        1. Primary RSS
+        2. Fallback RSS URLs
+        3. Google News site: (Bengali)
+        4. Google News site: (English)
+        5. Google News keyword search
+        """
+        domain = ""
+        if web_url:
+            domain = web_url.replace("https://","").replace("http://","").rstrip("/").split("/")[0]
+
+        all_urls = [u for u in ([rss_url] + list(fallbacks)) if u]
         if domain:
             all_urls += [
                 f"https://news.google.com/rss/search?q=site:{domain}&hl=bn&gl=BD&ceid=BD:bn",
                 f"https://news.google.com/rss/search?q=site:{domain}&hl=en&gl=BD&ceid=BD:en",
+                f"https://news.google.com/rss/search?q={domain}&hl=bn&gl=BD&ceid=BD:bn",
             ]
+
         for url in all_urls:
             try:
-                raw = fetch_rss(url, 60)
-                if raw:
-                    with_dt = sorted(
-                        [i for i in raw if i.get("pub_dt")],
-                        key=lambda x: x.get("age_hours", 9999)
-                    )
-                    no_dt = [i for i in raw if not i.get("pub_dt")]
-                    result = (with_dt + no_dt)[:20]
-                    if result:
-                        return result
+                raw = fetch_rss(url, 40)
+                if not raw:
+                    continue
+                # Sort: dated items first (freshest), undated at end
+                with_dt = sorted(
+                    [i for i in raw if i.get("pub_dt")],
+                    key=lambda x: x.get("age_hours", 9999)
+                )
+                no_dt  = [i for i in raw if not i.get("pub_dt")]
+                result = (with_dt + no_dt)[:20]
+                if result:
+                    # Clean Google News redirect titles
+                    for it in result:
+                        it["title"] = clean_gn_title(it.get("title",""))
+                    return result
             except Exception:
                 continue
         return []
@@ -2548,15 +2598,25 @@ with tab_reader:
         if not sel_all:
             st.markdown("""
 <div style="background:white;border:2px dashed #E8E4DC;border-radius:16px;
-  padding:60px 40px;text-align:center;color:#888;margin-top:20px">
-  <div style="font-size:48px;margin-bottom:16px">📡</div>
-  <div style="font-family:'Noto Serif Bengali',serif;font-size:18px;
-    font-weight:800;color:#1A1A1A;margin-bottom:8px">
+  padding:60px 40px;text-align:center;margin-top:20px">
+  <div style="font-size:52px;margin-bottom:16px">📡</div>
+  <div style="font-family:'Noto Serif Bengali',serif;font-size:20px;
+    font-weight:800;color:#1A1A1A;margin-bottom:10px">
     বাম পাশ থেকে সোর্স নির্বাচন করুন
   </div>
-  <div style="font-size:13px;line-height:1.7">
-    Radar Settings থেকে যে সোর্সগুলো দেখতে চান সেগুলো tick করুন।<br>
-    প্রতিটি সোর্স আলাদা কলামে দেখাবে।
+  <div style="font-size:13px;line-height:1.8;color:#666;margin-bottom:20px">
+    👈 Radar Settings থেকে যে সোর্সগুলো দেখতে চান সেগুলো ✅ করুন।<br>
+    প্রতিটি সোর্স আলাদা কলামে সর্বশেষ ২০টি নিউজ দেখাবে।
+  </div>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;
+      padding:10px 18px;font-size:12px;font-weight:700;color:#C8102E">
+      🇧🇩 সব BD → ✅ সব BD বাটন
+    </div>
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;
+      padding:10px 18px;font-size:12px;font-weight:700;color:#1d4ed8">
+      🌍 Priority → ⭐ Priority বাটন
+    </div>
   </div>
 </div>""", unsafe_allow_html=True)
         else:
